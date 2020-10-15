@@ -1,0 +1,17 @@
+with "switches";
+
+project Z3 is
+
+   for Create_Missing_Dirs use "True";
+   for Source_Dirs use (".");
+   for Object_Dir use "obj";
+
+   package Builder is
+      for Default_Switches ("Ada") use Switches.Compiler_Switches;
+   end Builder;
+
+   package Linker is
+      for Default_Switches ("Ada") use ("-lz3");
+   end Linker;
+
+end Z3;
