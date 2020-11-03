@@ -26,39 +26,46 @@ is
          z3_api_h.Z3_mk_string_symbol (c => Context.Data,
                                        s => z3_api_h.Z3_string (C_Name));
    begin
-      return (Data => (Data    => z3_api_h.Z3_mk_const (c  => Context.Data,
-                                                        s  => Symbol,
-                                                        ty => z3_api_h.Z3_mk_bool_sort (Context.Data)),
-                       Context => Context));
+      return (Data    => z3_api_h.Z3_mk_const (c  => Context.Data,
+                                               s  => Symbol,
+                                               ty => z3_api_h.Z3_mk_bool_sort (Context.Data)),
+              Context => Context);
    end Bool;
+
    ------------------------------------------------------------------------------------------------
 
    function Bool (Value : Boolean; Context : Z3.Context := Default_Context) return Bool_Type
    is
    begin
       if Value then
-         return (Data => (Data    => z3_api_h.Z3_mk_true (Context.Data),
-                          Context => Context));
+         return (Data    => z3_api_h.Z3_mk_true (Context.Data),
+                 Context => Context);
       end if;
-      return (Data => (Data    => z3_api_h.Z3_mk_false (Context.Data),
-                       Context => Context));
+      return (Data    => z3_api_h.Z3_mk_false (Context.Data),
+              Context => Context);
    end Bool;
 
    ------------------------------------------------------------------------------------------------
 
-   function Equal (Left, Right : Expr_Type) return Bool_Type
+   function Bool (Expr : Expr_Type'Class) return Bool_Type is
+      (Data    => Expr.Data,
+       Context => Expr.Context);
+
+   ------------------------------------------------------------------------------------------------
+
+   function Equal (Left, Right : Expr_Type'Class) return Bool_Type
    is
    begin
-      return (Data => (Data    => z3_api_h.Z3_mk_eq (c => Left.Context.Data,
-                                                     l => Left.Data,
-                                                     r => Right.Data),
-                       Context => Left.Context));
+      return (Data    => z3_api_h.Z3_mk_eq (c => Left.Context.Data,
+                                            l => Left.Data,
+                                            r => Right.Data),
+              Context => Left.Context);
    end Equal;
 
-   function "=" (Left, Right : Bool_Type) return Bool_Type is (Equal (Left.Data, Right.Data));
-   function "/=" (Left, Right : Bool_Type) return Bool_Type is (not Equal (Left.Data, Right.Data));
-   function "=" (Left, Right : Int_Type'Class) return Bool_Type is (Equal (Left.Data, Right.Data));
-   function "/=" (Left, Right : Int_Type'Class) return Bool_Type is (not Equal (Left.Data, Right.Data));
+   function "=" (Left, Right : Bool_Type) return Bool_Type is (Equal (Left, Right));
+   function "/=" (Left, Right : Bool_Type) return Bool_Type is (not Equal (Left, Right));
+   function "=" (Left, Right : Int_Type'Class) return Bool_Type is (Equal (Left, Right));
+   function "/=" (Left, Right : Int_Type'Class) return Bool_Type is (not Equal (Left, Right));
 
    ------------------------------------------------------------------------------------------------
 
@@ -80,9 +87,9 @@ is
    function "not" (Value : Bool_Type) return Bool_Type
    is
    begin
-      return (Data => (Data    => z3_api_h.Z3_mk_not (c => Value.Data.Context.Data,
-                                                      a => Value.Data.Data),
-                       Context => Value.Data.Context));
+      return (Data    => z3_api_h.Z3_mk_not (c => Value.Context.Data,
+                                             a => Value.Data),
+              Context => Value.Context);
    end "not";
 
    ------------------------------------------------------------------------------------------------
@@ -94,13 +101,13 @@ is
       First : constant Bool_Type := Terms (Terms'First);
    begin
       for I in Terms'Range loop
-         Args (I) := Terms (I).Data.Data;
+         Args (I) := Terms (I).Data;
       end loop;
 
-      return (Data => (Data    => z3_api_h.Z3_mk_and (c        => First.Data.Context.Data,
-                                                      num_args => Args'Length,
-                                                      args     => Args'Address),
-                       Context => First.Data.Context));
+      return (Data    => z3_api_h.Z3_mk_and (c        => First.Context.Data,
+                                             num_args => Args'Length,
+                                             args     => Args'Address),
+              Context => First.Context);
    end Conjunction;
 
    ------------------------------------------------------------------------------------------------
@@ -120,13 +127,13 @@ is
       First : constant Bool_Type := Terms (Terms'First);
    begin
       for I in Terms'Range loop
-         Args (I) := Terms (I).Data.Data;
+         Args (I) := Terms (I).Data;
       end loop;
 
-      return (Data => (Data    => z3_api_h.Z3_mk_or (c        => First.Data.Context.Data,
-                                                     num_args => Args'Length,
-                                                     args     => Args'Address),
-                       Context => First.Data.Context));
+      return (Data    => z3_api_h.Z3_mk_or (c        => First.Context.Data,
+                                            num_args => Args'Length,
+                                            args     => Args'Address),
+              Context => First.Context);
    end Disjunction;
 
    ------------------------------------------------------------------------------------------------
@@ -146,10 +153,10 @@ is
          z3_api_h.Z3_mk_string_symbol (c => Context.Data,
                                        s => z3_api_h.Z3_string (C_Name));
    begin
-      return (Data => (Data    => z3_api_h.Z3_mk_const (c  => Context.Data,
-                                                        s  => Symbol,
-                                                        ty => z3_api_h.Z3_mk_int_sort (Context.Data)),
-                       Context => Context));
+      return (Data    => z3_api_h.Z3_mk_const (c  => Context.Data,
+                                               s  => Symbol,
+                                               ty => z3_api_h.Z3_mk_int_sort (Context.Data)),
+              Context => Context);
    end Int;
 
    ------------------------------------------------------------------------------------------------
@@ -158,11 +165,17 @@ is
                  Context : Z3.Context := Default_Context) return Int_Type
    is
    begin
-      return (Data => (Data    => z3_api_h.Z3_mk_int64 (c  => Context.Data,
-                                                        v  => Value,
-                                                        ty => z3_api_h.Z3_mk_int_sort (Context.Data)),
-                       Context => Context));
+      return (Data    => z3_api_h.Z3_mk_int64 (c  => Context.Data,
+                                               v  => Value,
+                                               ty => z3_api_h.Z3_mk_int_sort (Context.Data)),
+              Context => Context);
    end Int;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Int (Expr : Expr_Type'Class) return Int_Type is
+      (Data    => Expr.Data,
+       Context => Expr.Context);
 
    ------------------------------------------------------------------------------------------------
 
@@ -173,13 +186,13 @@ is
       First : constant Int_Type := Values (Values'First);
    begin
       for I in Values'Range loop
-         Args (I) := Values (I).Data.Data;
+         Args (I) := Values (I).Data;
       end loop;
 
-      return (Data => (Data    => z3_api_h.Z3_mk_add (c        => First.Data.Context.Data,
-                                                      num_args => Args'Length,
-                                                      args     => Args'Address),
-                       Context => First.Data.Context));
+      return (Data    => z3_api_h.Z3_mk_add (c        => First.Context.Data,
+                                             num_args => Args'Length,
+                                             args     => Args'Address),
+              Context => First.Context);
    end Add;
 
    ------------------------------------------------------------------------------------------------
@@ -199,13 +212,13 @@ is
       First : constant Int_Type := Values (Values'First);
    begin
       for I in Values'Range loop
-         Args (I) := Values (I).Data.Data;
+         Args (I) := Values (I).Data;
       end loop;
 
-      return (Data => (Data    => z3_api_h.Z3_mk_mul (c        => First.Data.Context.Data,
-                                                      num_args => Args'Length,
-                                                      args     => Args'Address),
-                       Context => First.Data.Context));
+      return (Data    => z3_api_h.Z3_mk_mul (c        => First.Context.Data,
+                                             num_args => Args'Length,
+                                             args     => Args'Address),
+              Context => First.Context);
    end Mul;
 
    ------------------------------------------------------------------------------------------------
@@ -221,12 +234,12 @@ is
    function "-" (Left : Int_Type'Class; Right : Int_Type'Class) return Int_Type
    is
       type Int_Array is array (1 .. 2) of z3_api_h.Z3_ast;
-      Args : constant Int_Array := (Left.Data.Data, Right.Data.Data);
+      Args : constant Int_Array := (Left.Data, Right.Data);
    begin
-      return (Data => (Data    => z3_api_h.Z3_mk_sub (c        => Left.Data.Context.Data,
-                                                      num_args => Args'Length,
-                                                      args     => Args'Address),
-                       Context => Left.Data.Context));
+      return (Data    => z3_api_h.Z3_mk_sub (c        => Left.Context.Data,
+                                             num_args => Args'Length,
+                                             args     => Args'Address),
+              Context => Left.Context);
    end "-";
 
    ------------------------------------------------------------------------------------------------
@@ -234,10 +247,10 @@ is
    function "/" (Left : Int_Type'Class; Right : Int_Type'Class) return Int_Type
    is
    begin
-      return (Data => (Data    => z3_api_h.Z3_mk_div (c    => Left.Data.Context.Data,
-                                                      arg1 => Left.Data.Data,
-                                                      arg2 => Right.Data.Data),
-                       Context => Left.Data.Context));
+      return (Data    => z3_api_h.Z3_mk_div (c    => Left.Context.Data,
+                                             arg1 => Left.Data,
+                                             arg2 => Right.Data),
+              Context => Left.Context);
    end "/";
 
    ------------------------------------------------------------------------------------------------
@@ -245,10 +258,10 @@ is
    function "**" (Left : Int_Type'Class; Right : Int_Type'Class) return Int_Type
    is
    begin
-      return (Data => (Data    => z3_api_h.Z3_mk_power (c    => Left.Data.Context.Data,
-                                                        arg1 => Left.Data.Data,
-                                                        arg2 => Right.Data.Data),
-                       Context => Left.Data.Context));
+      return (Data    => z3_api_h.Z3_mk_power (c    => Left.Context.Data,
+                                               arg1 => Left.Data,
+                                               arg2 => Right.Data),
+              Context => Left.Context);
    end "**";
 
    ------------------------------------------------------------------------------------------------
@@ -256,10 +269,10 @@ is
    function "mod" (Left : Int_Type'Class; Right : Int_Type'Class) return Int_Type
    is
    begin
-      return (Data => (Data    => z3_api_h.Z3_mk_mod (c    => Left.Data.Context.Data,
-                                                      arg1 => Left.Data.Data,
-                                                      arg2 => Right.Data.Data),
-                       Context => Left.Data.Context));
+      return (Data    => z3_api_h.Z3_mk_mod (c    => Left.Context.Data,
+                                             arg1 => Left.Data,
+                                             arg2 => Right.Data),
+              Context => Left.Context);
    end "mod";
 
    ------------------------------------------------------------------------------------------------
@@ -267,9 +280,9 @@ is
    function "-" (Value : Int_Type) return Int_Type
    is
    begin
-      return (Data => (Data    => z3_api_h.Z3_mk_unary_minus (c   => Value.Data.Context.Data,
-                                                              arg => Value.Data.Data),
-                       Context => Value.Data.Context));
+      return (Data    => z3_api_h.Z3_mk_unary_minus (c   => Value.Context.Data,
+                                                     arg => Value.Data),
+              Context => Value.Context);
    end "-";
 
    ------------------------------------------------------------------------------------------------
@@ -277,10 +290,10 @@ is
    function "<" (Left : Int_Type'Class; Right : Int_Type'Class) return Bool_Type
    is
    begin
-      return (Data => (Data    => z3_api_h.Z3_mk_lt (c  => Left.Data.Context.Data,
-                                                     t1 => Left.Data.Data,
-                                                     t2 => Right.Data.Data),
-                       Context => Left.Data.Context));
+      return (Data    => z3_api_h.Z3_mk_lt (c  => Left.Context.Data,
+                                            t1 => Left.Data,
+                                            t2 => Right.Data),
+              Context => Left.Context);
    end "<";
 
    ------------------------------------------------------------------------------------------------
@@ -288,10 +301,10 @@ is
    function "<=" (Left : Int_Type'Class; Right : Int_Type'Class) return Bool_Type
    is
    begin
-      return (Data => (Data    => z3_api_h.Z3_mk_le (c  => Left.Data.Context.Data,
-                                                     t1 => Left.Data.Data,
-                                                     t2 => Right.Data.Data),
-                       Context => Left.Data.Context));
+      return (Data    => z3_api_h.Z3_mk_le (c  => Left.Context.Data,
+                                            t1 => Left.Data,
+                                            t2 => Right.Data),
+              Context => Left.Context);
    end "<=";
 
    ------------------------------------------------------------------------------------------------
@@ -299,10 +312,10 @@ is
    function ">" (Left : Int_Type'Class; Right : Int_Type'Class) return Bool_Type
    is
    begin
-      return (Data => (Data    => z3_api_h.Z3_mk_gt (c  => Left.Data.Context.Data,
-                                                     t1 => Left.Data.Data,
-                                                     t2 => Right.Data.Data),
-                       Context => Left.Data.Context));
+      return (Data    => z3_api_h.Z3_mk_gt (c  => Left.Context.Data,
+                                            t1 => Left.Data,
+                                            t2 => Right.Data),
+              Context => Left.Context);
    end ">";
 
    ------------------------------------------------------------------------------------------------
@@ -310,10 +323,10 @@ is
    function ">=" (Left : Int_Type'Class; Right : Int_Type'Class) return Bool_Type
    is
    begin
-      return (Data => (Data    => z3_api_h.Z3_mk_ge (c  => Left.Data.Context.Data,
-                                                     t1 => Left.Data.Data,
-                                                     t2 => Right.Data.Data),
-                       Context => Left.Data.Context));
+      return (Data    => z3_api_h.Z3_mk_ge (c  => Left.Context.Data,
+                                            t1 => Left.Data,
+                                            t2 => Right.Data),
+              Context => Left.Context);
    end ">=";
 
    ------------------------------------------------------------------------------------------------
@@ -334,7 +347,7 @@ is
    begin
       z3_api_h.Z3_solver_assert (c => Context.Data,
                                  s => Solver.Data,
-                                 a => Fact.Data.Data);
+                                 a => Fact.Data);
    end Assert;
 
    ------------------------------------------------------------------------------------------------
@@ -364,62 +377,45 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Same_Context (Terms : Bool_Array) return Boolean
+   function Same_Context (Left, Right : Expr_Type'Class) return Boolean
    is
-      First_Context : Context;
    begin
-      if Terms'Length <= 1 then
-         return True;
-      end if;
-      First_Context := Terms (Terms'First).Data.Context;
-      return (for all T of Terms (Terms'First + 1 .. Terms'Last) => T.Data.Context = First_Context);
+      return Left.Context = Right.Context;
    end Same_Context;
 
    ------------------------------------------------------------------------------------------------
 
-   function Same_Context (Left, Right : Bool_Type) return Boolean
+   function Same_Context (Terms : Bool_Array) return Boolean
    is
+      First : Bool_Type;
    begin
-      return Same_Context (Bool_Array'(Left, Right));
+      if Terms'Length <= 1 then
+         return True;
+      end if;
+      First := Terms (Terms'First);
+      return (for all T of Terms (Terms'First + 1 .. Terms'Last) => Same_Context (T, First));
    end Same_Context;
 
    ------------------------------------------------------------------------------------------------
 
    function Same_Context (Values : Int_Array) return Boolean
    is
-      First_Context : Context;
+      First : Int_Type;
    begin
       if Values'Length <= 1 then
          return True;
       end if;
-      First_Context := Values (Values'First).Data.Context;
-      return (for all T of Values (Values'First + 1 .. Values'Last) => T.Data.Context = First_Context);
+      First := Values (Values'First);
+      return (for all T of Values (Values'First + 1 .. Values'Last) => Same_Context (T, First));
    end Same_Context;
 
    ------------------------------------------------------------------------------------------------
 
-   function Same_Context (Left, Right : Int_Type) return Boolean
+   function "+" (Value : Expr_Type) return String
    is
    begin
-      return Same_Context (Int_Array'(Left, Right));
-   end Same_Context;
-
-   ------------------------------------------------------------------------------------------------
-
-   function "+" (Value : Bool_Type) return String
-   is
-   begin
-      return ICS.Value (chars_ptr (z3_api_h.Z3_ast_to_string (c => Value.Data.Context.Data,
-                                                              a => Value.Data.Data)));
-   end "+";
-
-   ------------------------------------------------------------------------------------------------
-
-   function "+" (Value : Int_Type) return String
-   is
-   begin
-      return ICS.Value (chars_ptr (z3_api_h.Z3_ast_to_string (c => Value.Data.Context.Data,
-                                                              a => Value.Data.Data)));
+      return ICS.Value (chars_ptr (z3_api_h.Z3_ast_to_string (c => Value.Context.Data,
+                                                              a => Value.Data)));
    end "+";
 
    ------------------------------------------------------------------------------------------------
@@ -430,8 +426,8 @@ is
       Result  : aliased Long_Long_Integer;
       use type Interfaces.C.int;
    begin
-      Success := z3_api_h.Z3_get_numeral_int64 (c => Data.Data.Context.Data,
-                                                v => Data.Data.Data,
+      Success := z3_api_h.Z3_get_numeral_int64 (c => Data.Context.Data,
+                                                v => Data.Data,
                                                 i => Result'Access);
       if Success = 0 then
          raise Z3.Value_Error;

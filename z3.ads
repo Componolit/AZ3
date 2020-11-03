@@ -14,18 +14,23 @@ is
    --  Set a global configuration parameter
    procedure Set_Param_Value (ID : String; Value : String);
 
+   type Expr_Type is tagged private;
+
+   function Same_Context (Left, Right : Expr_Type'Class) return Boolean;
+   function Simplified (Value : Expr_Type) return Expr_Type;
+   function "+" (Value : Expr_Type) return String;
+
    --  Boolean expressions
-   type Bool_Type is tagged private;
+   type Bool_Type is new Expr_Type with private;
    type Bool_Array is array (Natural range <>) of Bool_Type;
 
    function Bool (Name : String; Context : Z3.Context := Default_Context) return Bool_Type;
    function Bool (Value : Boolean; Context : Z3.Context := Default_Context) return Bool_Type;
+   function Bool (Expr : Expr_Type'Class) return Bool_Type;
    function Same_Context (Terms : Bool_Array) return Boolean;
-   function Same_Context (Left, Right : Bool_Type) return Boolean;
    function Has_Context (Value : Bool_Type; Context : Z3.Context) return Boolean;
+   overriding
    function Simplified (Value : Bool_Type) return Bool_Type;
-
-   function "+" (Value : Bool_Type) return String;
 
    function "=" (Left, Right : Bool_Type) return Bool_Type with
       Pre => Same_Context (Left, Right);
@@ -48,19 +53,18 @@ is
       Pre => Same_Context (Left, Right);
 
    --  Integer expressions
-   type Int_Type is tagged private;
+   type Int_Type is new Expr_Type with private;
    type Int_Array is array (Natural range <>) of Int_Type;
 
    function Int (Name : String; Context : Z3.Context := Default_Context) return Int_Type;
    function Int (Value   : Long_Long_Integer;
                  Context : Z3.Context := Default_Context) return Int_Type;
+   function Int (Expr : Expr_Type'Class) return Int_Type;
    function Same_Context (Values : Int_Array) return Boolean;
-   function Same_Context (Left, Right : Int_Type) return Boolean;
+   overriding
    function Simplified (Value : Int_Type) return Int_Type;
 
    function Value (Data : Int_Type) return Long_Long_Integer;
-
-   function "+" (Value : Int_Type) return String;
 
    function "=" (Left : Int_Type'Class; Right : Int_Type'Class) return Bool_Type with
       Pre => Same_Context (Left, Right);
@@ -139,21 +143,15 @@ private
          Data : z3_api_h.Z3_context;
       end record;
 
-   type Expr_Type is
+   type Expr_Type is tagged
       record
          Data    : z3_api_h.Z3_ast;
          Context : Z3.Context;
       end record;
 
-   type Bool_Type is tagged
-      record
-         Data : Expr_Type;
-      end record;
+   type Bool_Type is new Expr_Type with null record;
 
-   type Int_Type is tagged
-      record
-         Data : Expr_Type;
-      end record;
+   type Int_Type is new Expr_Type with null record;
 
    type Solver is tagged limited
       record
@@ -165,14 +163,15 @@ private
    Default_Context : constant Context := (Data => z3_api_h.Z3_mk_context (Default_Config.Data));
 
    use type z3_api_h.Z3_context;
-   use type z3_api_h.Z3_ast;
 
    function Has_Context (Value   : Bool_Type;
-                         Context : Z3.Context) return Boolean is (Value.Data.Context.Data = Context.Data);
+                         Context : Z3.Context) return Boolean is (Value.Context.Data = Context.Data);
    function Has_Context (Solver  : Z3.Solver;
                          Context : Z3.Context) return Boolean is (Solver.Context.Data = Context.Data);
 
-   function Simplified (Value : Expr_Type) return Expr_Type;
-   function Simplified (Value : Bool_Type) return Bool_Type is (Data => Simplified (Value.Data));
-   function Simplified (Value : Int_Type) return Int_Type is (Data => Simplified (Value.Data));
+   overriding
+   function Simplified (Value : Bool_Type) return Bool_Type is (Bool (Expr_Type (Value).Simplified));
+   overriding
+   function Simplified (Value : Int_Type) return Int_Type is (Int (Expr_Type (Value).Simplified));
+
 end Z3;
