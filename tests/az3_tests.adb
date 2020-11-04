@@ -185,6 +185,38 @@ package body AZ3_Tests is
 
    ---------------------------------------------------------------------------
 
+   procedure Test_Substitute (T : in out Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Z3;
+      Expr     : Bool_Type := Int (1) < Int ("A");
+      Expected : Bool_Type := Int (1) < Int ("B");
+      Result   : Bool_Type := Bool (Substitute (Expr, Int ("A"), Int ("B")));
+   begin
+      Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
+      Result   := Bool (Substitute (Expr, Int_Array'(1 => Int ("A")), Int_Array'(1 => Int ("B"))));
+      Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
+      Expr     := Bool (False) or Bool ("A");
+      Expected := Bool (False) or Bool ("B");
+      Result   := Bool (Substitute (Expr, Bool ("A"), Bool ("B")));
+      Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
+      Result   := Bool (Substitute (Expr, Bool_Array'(1 => Bool ("A")), Bool_Array'(1 => Bool ("B"))));
+      Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
+      Expected := Expr;
+      Result   := Bool (Substitute (Expr, Bool_Array'(2 .. 1 => Bool (False)), Bool_Array'(2 .. 1 => Bool (True))));
+      Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
+      Expr     := Bool (False) or Bool ("A") or Bool ("B");
+      Expected := Bool (False) or Bool ("C") or Bool (False);
+      Result   := Bool (Substitute (Expr, Bool_Array'(Bool ("A"), Bool ("B")), Bool_Array'(Bool ("C"), Bool (False))));
+      Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
+      Expr     := Int (1) + Int ("A") < Int ("B");
+      Expected := Int (1) + Int ("C") < Int (42);
+      Result   := Bool (Substitute (Expr, Int_Array'(Int ("A"), Int ("B")), Int_Array'(Int ("C"), Int (42))));
+      Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
+   end Test_Substitute;
+
+   ---------------------------------------------------------------------------
+
    overriding
    procedure Register_Tests (T : in out Test_Case)
    is
@@ -197,6 +229,7 @@ package body AZ3_Tests is
       Register_Routine (T, Test_Conflicting_Contexts'Access, "Conflicting contexts");
       Register_Routine (T, Test_String_Representation'Access, "String representation");
       Register_Routine (T, Test_Value'Access, "Value");
+      Register_Routine (T, Test_Substitute'Access, "Substitute");
    end Register_Tests;
 
    ---------------------------------------------------------------------------

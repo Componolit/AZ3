@@ -79,6 +79,46 @@ is
 
    ------------------------------------------------------------------------------------------------
 
+   function Substitute (Expr : Expr_Type'Class;
+                        From : Bool_Array;
+                        To   : Bool_Array) return Expr_Type'Class
+   is
+      From_Ast : constant Z3_ast_array := To_Z3_ast_array (From);
+      To_Ast   : constant Z3_ast_array := To_Z3_ast_array (To);
+   begin
+      if From'Length = 0 then
+         return Expr;
+      end if;
+      return Expr_Type'(Data    => z3_api_h.Z3_substitute (Expr.Context.Data,
+                                                           Expr.Data,
+                                                           From_Ast'Length,
+                                                           From_Ast'Address,
+                                                           To_Ast'Address),
+                        Context => Expr.Context);
+   end Substitute;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Substitute (Expr : Expr_Type'Class;
+                        From : Int_Array;
+                        To   : Int_Array) return Expr_Type'Class
+   is
+      From_Ast : constant Z3_ast_array := To_Z3_ast_array (From);
+      To_Ast   : constant Z3_ast_array := To_Z3_ast_array (To);
+   begin
+      if From'Length = 0 then
+         return Expr;
+      end if;
+      return Expr_Type'(Data    => z3_api_h.Z3_substitute (Expr.Context.Data,
+                                                           Expr.Data,
+                                                           From_Ast'Length,
+                                                           From_Ast'Address,
+                                                           To_Ast'Address),
+                        Context => Expr.Context);
+   end Substitute;
+
+   ------------------------------------------------------------------------------------------------
+
    function New_Context return Context is
       ((Data => z3_api_h.Z3_mk_context (Default_Config.Data)));
 
@@ -434,5 +474,29 @@ is
       end if;
       return Result;
    end Value;
+
+   ------------------------------------------------------------------------------------------------
+
+   function To_Z3_ast_array (Value : Bool_Array) return Z3_ast_array
+   is
+      Result : Z3_ast_array (Value'First .. Value'Last);
+   begin
+      for I in Value'Range loop
+         Result (I) := Value (I).Data;
+      end loop;
+      return Result;
+   end To_Z3_ast_array;
+
+   ------------------------------------------------------------------------------------------------
+
+   function To_Z3_ast_array (Value : Int_Array) return Z3_ast_array
+   is
+      Result : Z3_ast_array (Value'First .. Value'Last);
+   begin
+      for I in Value'Range loop
+         Result (I) := Value (I).Data;
+      end loop;
+      return Result;
+   end To_Z3_ast_array;
 
 end Z3;

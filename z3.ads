@@ -32,6 +32,21 @@ is
    overriding
    function Simplified (Value : Bool_Type) return Bool_Type;
 
+   function Substitute (Expr : Expr_Type'Class;
+                        From : Bool_Type;
+                        To   : Bool_Type) return Expr_Type'Class with
+      Pre => Same_Context (Expr, From)
+             and then Same_Context (From, To);
+   function Substitute (Expr : Expr_Type'Class;
+                        From : Bool_Array;
+                        To   : Bool_Array) return Expr_Type'Class with
+      Pre => From'Length = To'Length
+             and then (if
+                          From'Length > 0
+                       then
+                          Same_Context (Expr, From (From'First))
+                          and then Same_Context (From & To));
+
    function "=" (Left, Right : Bool_Type) return Bool_Type with
       Pre => Same_Context (Left, Right);
 
@@ -63,6 +78,21 @@ is
    function Same_Context (Values : Int_Array) return Boolean;
    overriding
    function Simplified (Value : Int_Type) return Int_Type;
+
+   function Substitute (Expr : Expr_Type'Class;
+                        From : Int_Type;
+                        To   : Int_Type) return Expr_Type'Class with
+      Pre => Same_Context (Expr, From)
+             and then Same_Context (From, To);
+   function Substitute (Expr : Expr_Type'Class;
+                        From : Int_Array;
+                        To   : Int_Array) return Expr_Type'Class with
+      Pre => From'Length = To'Length
+             and then (if
+                          From'Length > 0
+                       then
+                          Same_Context (Expr, From (From'First))
+                          and then Same_Context (From & To));
 
    function Value (Data : Int_Type) return Long_Long_Integer;
 
@@ -159,6 +189,15 @@ private
          Context : Z3.Context;
       end record;
 
+   type Z3_ast_array is array (Natural range <>) of z3_api_h.Z3_ast;
+
+   function To_Z3_ast_array (Value : Bool_Array) return Z3_ast_array with
+      Pre  => Same_Context (Value),
+      Post => Value'Length = To_Z3_ast_array'Result'Length;
+   function To_Z3_ast_array (Value : Int_Array) return Z3_ast_array with
+      Pre  => Same_Context (Value),
+      Post => Value'Length = To_Z3_ast_array'Result'Length;
+
    Default_Config  : Z3.Config := (Data => z3_api_h.Z3_mk_config);
    Default_Context : constant Context := (Data => z3_api_h.Z3_mk_context (Default_Config.Data));
 
@@ -173,5 +212,15 @@ private
    function Simplified (Value : Bool_Type) return Bool_Type is (Bool (Expr_Type (Value).Simplified));
    overriding
    function Simplified (Value : Int_Type) return Int_Type is (Int (Expr_Type (Value).Simplified));
+
+   function Substitute (Expr : Expr_Type'Class;
+                        From : Bool_Type;
+                        To   : Bool_Type) return Expr_Type'Class is
+      (Substitute (Expr, Bool_Array'(1 => From), Bool_Array'(1 => To)));
+
+   function Substitute (Expr : Expr_Type'Class;
+                        From : Int_Type;
+                        To   : Int_Type) return Expr_Type'Class is
+      (Substitute (Expr, Int_Array'(1 => From), Int_Array'(1 => To)));
 
 end Z3;
