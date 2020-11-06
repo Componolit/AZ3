@@ -5,6 +5,8 @@ is
    Internal_Error : exception;
    Value_Error    : exception;
 
+   type Long_Long_Unsigned is mod 2 ** 64;
+
    type Context is private;
    type Result is (Result_True, Result_False, Result_Undef);
 
@@ -74,6 +76,8 @@ is
    function Int (Name : String; Context : Z3.Context := Default_Context) return Int_Type;
    function Int (Value   : Long_Long_Integer;
                  Context : Z3.Context := Default_Context) return Int_Type;
+   function Int (Value   : Long_Long_Unsigned;
+                 Context : Z3.Context := Default_Context) return Int_Type;
    function Int (Expr : Expr_Type'Class) return Int_Type;
    function Same_Context (Values : Int_Array) return Boolean;
    overriding
@@ -95,6 +99,8 @@ is
                           and then Same_Context (From & To));
 
    function Value (Data : Int_Type) return Long_Long_Integer;
+
+   function Value (Data : Int_Type) return Long_Long_Unsigned;
 
    function "=" (Left : Int_Type'Class; Right : Int_Type'Class) return Bool_Type with
       Pre => Same_Context (Left, Right);

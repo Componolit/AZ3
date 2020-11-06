@@ -1,3 +1,4 @@
+with Interfaces.C.Extensions;
 with Interfaces.C.Strings;
 
 package body Z3
@@ -216,6 +217,18 @@ is
    function Int (Expr : Expr_Type'Class) return Int_Type is
       (Data    => Expr.Data,
        Context => Expr.Context);
+
+   ------------------------------------------------------------------------------------------------
+
+   function Int (Value   : Long_Long_Unsigned;
+                 Context : Z3.Context := Default_Context) return Int_Type
+   is
+   begin
+      return (Data    => z3_api_h.Z3_mk_unsigned_int64 (c  => Context.Data,
+                                                        v  => Interfaces.C.Extensions.unsigned_long_long (Value),
+                                                        ty => z3_api_h.Z3_mk_int_sort (Context.Data)),
+              Context => Context);
+   end Int;
 
    ------------------------------------------------------------------------------------------------
 
@@ -473,6 +486,23 @@ is
          raise Z3.Value_Error;
       end if;
       return Result;
+   end Value;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Value (Data : Int_Type) return Long_Long_Unsigned
+   is
+      Success : z3_api_h.Z3_bool;
+      Result  : aliased Interfaces.C.Extensions.unsigned_long_long;
+      use type Interfaces.C.int;
+   begin
+      Success := z3_api_h.Z3_get_numeral_uint64 (c => Data.Context.Data,
+                                                 v => Data.Data,
+                                                 u => Result'Access);
+      if Success = 0 then
+         raise Z3.Value_Error;
+      end if;
+      return Long_Long_Unsigned (Result);
    end Value;
 
    ------------------------------------------------------------------------------------------------
