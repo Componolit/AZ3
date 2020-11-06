@@ -5,6 +5,9 @@ package body AZ3_Tests is
 
    use AUnit.Assertions;
 
+   subtype LLI is Long_Long_Integer;
+   subtype LLU is Z3.Long_Long_Unsigned;
+
    function Simp (V : Z3.Bool_Type) return Z3.Bool_Type is
    begin
       return V.Simplified;
@@ -61,39 +64,80 @@ package body AZ3_Tests is
       pragma Unreferenced  (T);
       use Z3;
    begin
-      Assert (Simp (Int (1) = Int (1)) = Bool (True), "1 != 1");
-      Assert (Simp (Int (1) = Int (2)) = Bool (False), "1 == 2");
-      Assert (Simp (Int (1) /= Int (2)) = Bool (True), "1 == 2");
-      Assert (Simp (Int (1) /= Int (1)) = Bool (False), "1 != 2");
-      Assert (Simp (Int (1) + Int (2)) = Int (3), "1 + 2 != 3");
-      Assert (Simp (Int (1) + Int (2) + Int (3)) = Int (6), "1 + 2 + 3 != 6");
-      Assert (Simp (Int (1) + Int (2) + Int (3) /= Int (7)) = Bool (True), "1 + 2 + 3 == 7");
-      Assert (Simp (Int (0) + Int ("X") = Int ("X")) = Bool (True), "0 + X != X");
-      Assert (Simp (Int (2) * Int (4) = Int (8)) = Bool (True), "2 * 4 != 8");
-      Assert (Simp (Int (0) * Int (124) = Int (0)) = Bool (True), "0 * 124 != 0");
-      Assert (Simp (Int (0) * Int ("X") = Int (0)) = Bool (True), "0 * X != 0");
-      Assert (Simp (Int (5) - Int (3) = Int (2)) = Bool (True), "5 - 3 != 2");
-      Assert (Simp (Int (5) - Int (30) = Int (-25)) = Bool (True), "5 - 30 != 25");
-      Assert (Simp (Int ("X") - Int (0) = Int ("X")) = Bool (True), "X - 0 != X");
-      Assert (Simp (Int (6) / Int (2) = Int (3)) = Bool (True), "6 / 2 != 3");
-      Assert (Simp (Int (0) / Int (15) = Int (0)) = Bool (True), "0 / 15 != 0");
-      Assert (Simp (Int (10) / Int (3) = Int (3)) = Bool (True), "10 / 3 != 3");
-      Assert (Simp (Int (16) mod Int (8) = Int (0)) = Bool (True), "16 % 8 != 0");
-      Assert (Simp (Int (17) mod Int (8) = Int (1)) = Bool (True), "17 % 8 != 1");
-      Assert (Simp (-Int (5) + Int (5) = Int (0)) = Bool (True), "-5 + 5 != 0");
-      Assert (Simp (Int (2) ** Int (4) = Int (16)) = Bool (True), "2^4 != 16");
-      Assert (Simp (Int (2) ** Int (0) = Int (1)) = Bool (True), "2^0 != 1");
-      Assert (Simp (Int (2) < Int (0)) = Bool (False), "2 < 0 != false");
-      Assert (Simp (Int (0) < Int (10)) = Bool (True), "0 < 10 != true");
-      Assert (Simp (Int (2) <= Int (0)) = Bool (False), "2 <= 0 != false");
-      Assert (Simp (Int (0) <= Int (10)) = Bool (True), "0 <= 10 != true");
-      Assert (Simp (Int (3) <= Int (3)) = Bool (True), "3 <= 3 != true");
-      Assert (Simp (Int (0) > Int (2)) = Bool (False), "2 > 0 != false");
-      Assert (Simp (Int (10) > Int (0)) = Bool (True), "10 > 0 != true");
-      Assert (Simp (Int (0) >= Int (2)) = Bool (False), "0 >= 2 != false");
-      Assert (Simp (Int (10) >= Int (0)) = Bool (True), "10 >= 0 != true");
-      Assert (Simp (Int (3) >= Int (3)) = Bool (True), "3 >= 3 != true");
+      Assert (Simp (Int (LLI'(1)) = Int (LLI'(1))) = Bool (True), "1 != 1");
+      Assert (Simp (Int (LLI'(1)) = Int (LLI'(2))) = Bool (False), "1 == 2");
+      Assert (Simp (Int (LLI'(1)) /= Int (LLI'(2))) = Bool (True), "1 == 2");
+      Assert (Simp (Int (LLI'(1)) /= Int (LLI'(1))) = Bool (False), "1 != 2");
+      Assert (Simp (Int (LLI'(1)) + Int (LLI'(2))) = Int (LLI'(3)), "1 + 2 != 3");
+      Assert (Simp (Int (LLI'(1)) + Int (LLI'(2)) + Int (LLI'(3))) = Int (LLI'(6)), "1 + 2 + 3 != 6");
+      Assert (Simp (Int (LLI'(1)) + Int (LLI'(2)) + Int (LLI'(3)) /= Int (LLI'(7))) = Bool (True), "1 + 2 + 3 == 7");
+      Assert (Simp (Int (LLI'(0)) + Int ("X") = Int ("X")) = Bool (True), "0 + X != X");
+      Assert (Simp (Int (LLI'(2)) * Int (LLI'(4)) = Int (LLI'(8))) = Bool (True), "2 * 4 != 8");
+      Assert (Simp (Int (LLI'(0)) * Int (LLI'(124)) = Int (LLI'(0))) = Bool (True), "0 * 124 != 0");
+      Assert (Simp (Int (LLI'(0)) * Int ("X") = Int (LLI'(0))) = Bool (True), "0 * X != 0");
+      Assert (Simp (Int (LLI'(5)) - Int (LLI'(3)) = Int (LLI'(2))) = Bool (True), "5 - 3 != 2");
+      Assert (Simp (Int (LLI'(5)) - Int (LLI'(30)) = Int (LLI'(-25))) = Bool (True), "5 - 30 != 25");
+      Assert (Simp (Int ("X") - Int (LLI'(0)) = Int ("X")) = Bool (True), "X - 0 != X");
+      Assert (Simp (Int (LLI'(6)) / Int (LLI'(2)) = Int (LLI'(3))) = Bool (True), "6 / 2 != 3");
+      Assert (Simp (Int (LLI'(0)) / Int (LLI'(15)) = Int (LLI'(0))) = Bool (True), "0 / 15 != 0");
+      Assert (Simp (Int (LLI'(10)) / Int (LLI'(3)) = Int (LLI'(3))) = Bool (True), "10 / 3 != 3");
+      Assert (Simp (Int (LLI'(16)) mod Int (LLI'(8)) = Int (LLI'(0))) = Bool (True), "16 % 8 != 0");
+      Assert (Simp (Int (LLI'(17)) mod Int (LLI'(8)) = Int (LLI'(1))) = Bool (True), "17 % 8 != 1");
+      Assert (Simp (-Int (LLI'(5)) + Int (LLI'(5)) = Int (LLI'(0))) = Bool (True), "-5 + 5 != 0");
+      Assert (Simp (Int (LLI'(2)) ** Int (LLI'(4)) = Int (LLI'(16))) = Bool (True), "2^4 != 16");
+      Assert (Simp (Int (LLI'(2)) ** Int (LLI'(0)) = Int (LLI'(1))) = Bool (True), "2^0 != 1");
+      Assert (Simp (Int (LLI'(2)) < Int (LLI'(0))) = Bool (False), "2 < 0 != false");
+      Assert (Simp (Int (LLI'(0)) < Int (LLI'(10))) = Bool (True), "0 < 10 != true");
+      Assert (Simp (Int (LLI'(2)) <= Int (LLI'(0))) = Bool (False), "2 <= 0 != false");
+      Assert (Simp (Int (LLI'(0)) <= Int (LLI'(10))) = Bool (True), "0 <= 10 != true");
+      Assert (Simp (Int (LLI'(3)) <= Int (LLI'(3))) = Bool (True), "3 <= 3 != true");
+      Assert (Simp (Int (LLI'(0)) > Int (LLI'(2))) = Bool (False), "2 > 0 != false");
+      Assert (Simp (Int (LLI'(10)) > Int (LLI'(0))) = Bool (True), "10 > 0 != true");
+      Assert (Simp (Int (LLI'(0)) >= Int (LLI'(2))) = Bool (False), "0 >= 2 != false");
+      Assert (Simp (Int (LLI'(10)) >= Int (LLI'(0))) = Bool (True), "10 >= 0 != true");
+      Assert (Simp (Int (LLI'(3)) >= Int (LLI'(3))) = Bool (True), "3 >= 3 != true");
    end Test_Integer;
+
+   ---------------------------------------------------------------------------
+
+   procedure Test_Unsigned (T : in out Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Z3;
+   begin
+      Assert (Simp (Int (LLU'(1)) = Int (LLU'(1))) = Bool (True), "1 != 1");
+      Assert (Simp (Int (LLU'(1)) = Int (LLU'(2))) = Bool (False), "1 == 2");
+      Assert (Simp (Int (LLU'(1)) /= Int (LLU'(2))) = Bool (True), "1 == 2");
+      Assert (Simp (Int (LLU'(1)) /= Int (LLU'(1))) = Bool (False), "1 != 2");
+      Assert (Simp (Int (LLU'(1)) + Int (LLU'(2))) = Int (LLU'(3)), "1 + 2 != 3");
+      Assert (Simp (Int (LLU'(1)) + Int (LLU'(2)) + Int (LLU'(3))) = Int (LLU'(6)), "1 + 2 + 3 != 6");
+      Assert (Simp (Int (LLU'(1)) + Int (LLU'(2)) + Int (LLU'(3)) /= Int (LLU'(7))) = Bool (True), "1 + 2 + 3 == 7");
+      Assert (Simp (Int (LLU'(0)) + Int ("X") = Int ("X")) = Bool (True), "0 + X != X");
+      Assert (Simp (Int (LLU'(2)) * Int (LLU'(4)) = Int (LLU'(8))) = Bool (True), "2 * 4 != 8");
+      Assert (Simp (Int (LLU'(0)) * Int (LLU'(124)) = Int (LLU'(0))) = Bool (True), "0 * 124 != 0");
+      Assert (Simp (Int (LLU'(0)) * Int ("X") = Int (LLU'(0))) = Bool (True), "0 * X != 0");
+      Assert (Simp (Int (LLU'(5)) - Int (LLU'(3)) = Int (LLU'(2))) = Bool (True), "5 - 3 != 2");
+      Assert (Simp (Int (LLU'(5)) - Int (LLU'(30)) = Int (LLI'(-25))) = Bool (True), "5 - 30 != 25");
+      Assert (Simp (Int ("X") - Int (LLU'(0)) = Int ("X")) = Bool (True), "X - 0 != X");
+      Assert (Simp (Int (LLU'(6)) / Int (LLU'(2)) = Int (LLU'(3))) = Bool (True), "6 / 2 != 3");
+      Assert (Simp (Int (LLU'(0)) / Int (LLU'(15)) = Int (LLU'(0))) = Bool (True), "0 / 15 != 0");
+      Assert (Simp (Int (LLU'(10)) / Int (LLU'(3)) = Int (LLU'(3))) = Bool (True), "10 / 3 != 3");
+      Assert (Simp (Int (LLU'(16)) mod Int (LLU'(8)) = Int (LLU'(0))) = Bool (True), "16 % 8 != 0");
+      Assert (Simp (Int (LLU'(17)) mod Int (LLU'(8)) = Int (LLU'(1))) = Bool (True), "17 % 8 != 1");
+      Assert (Simp (-Int (LLU'(5)) + Int (LLU'(5)) = Int (LLU'(0))) = Bool (True), "-5 + 5 != 0");
+      Assert (Simp (Int (LLU'(2)) ** Int (LLU'(4)) = Int (LLU'(16))) = Bool (True), "2^4 != 16");
+      Assert (Simp (Int (LLU'(2)) ** Int (LLU'(0)) = Int (LLU'(1))) = Bool (True), "2^0 != 1");
+      Assert (Simp (Int (LLU'(2)) < Int (LLU'(0))) = Bool (False), "2 < 0 != false");
+      Assert (Simp (Int (LLU'(0)) < Int (LLU'(10))) = Bool (True), "0 < 10 != true");
+      Assert (Simp (Int (LLU'(2)) <= Int (LLU'(0))) = Bool (False), "2 <= 0 != false");
+      Assert (Simp (Int (LLU'(0)) <= Int (LLU'(10))) = Bool (True), "0 <= 10 != true");
+      Assert (Simp (Int (LLU'(3)) <= Int (LLU'(3))) = Bool (True), "3 <= 3 != true");
+      Assert (Simp (Int (LLU'(0)) > Int (LLU'(2))) = Bool (False), "2 > 0 != false");
+      Assert (Simp (Int (LLU'(10)) > Int (LLU'(0))) = Bool (True), "10 > 0 != true");
+      Assert (Simp (Int (LLU'(0)) >= Int (LLU'(2))) = Bool (False), "0 >= 2 != false");
+      Assert (Simp (Int (LLU'(10)) >= Int (LLU'(0))) = Bool (True), "10 >= 0 != true");
+      Assert (Simp (Int (LLU'(3)) >= Int (LLU'(3))) = Bool (True), "3 >= 3 != true");
+   end Test_Unsigned;
 
    ---------------------------------------------------------------------------
 
@@ -115,10 +159,10 @@ package body AZ3_Tests is
       S.Assert (Bool ("X") or not Bool ("X"));
       Assert (S.Check = Result_True, "X or not X not check as true");
       S.Reset;
-      S.Assert (Int ("X") < Int (3) and Int ("X") > Int (100));
+      S.Assert (Int ("X") < Int (LLI'(3)) and Int ("X") > Int (LLI'(100)));
       Assert (S.Check = Result_False, "contradiction not found");
       S.Reset;
-      S.Assert (Int ("X") >= Int (3) and Int ("X") <= Int (100));
+      S.Assert (Int ("X") >= Int (LLI'(3)) and Int ("X") <= Int (LLI'(100)));
       Assert (S.Check = Result_True, "X >= 3 and X <= 100 not checked as true");
       S.Reset;
       S.Assert (Int ("X") ** Int ("Y") >= Int ("X"));
@@ -151,8 +195,8 @@ package body AZ3_Tests is
       pragma Unreferenced  (T);
       use Z3;
    begin
-      Assert (+Int (234) = "234", "invalid boolean string representation");
-      Assert (+(Int (7) + Int (15)) = "(+ 7 15)", "invalid integer string representation");
+      Assert (+Int (LLI'(234)) = "234", "invalid boolean string representation");
+      Assert (+(Int (LLI'(7)) + Int (LLI'(15))) = "(+ 7 15)", "invalid integer string representation");
       Assert (+Bool (True) = "true", "invalid boolean string representation");
       Assert (+(Bool ("X") or Bool ("Y")) = "(or X Y)", "invalid boolean string representation");
    end Test_String_Representation;
@@ -162,25 +206,36 @@ package body AZ3_Tests is
    procedure Value_Of_Addition
    is
       use Z3;
-      I      : constant Int_Type := Int (-1000) + Int (5000);
+      I      : constant Int_Type := Int (LLI'(-1000)) + Int (LLI'(5000));
       Unused : constant Long_Long_Integer := I.Value;
    begin
       null; --  GCOV_EXCL_LINE
    end Value_Of_Addition;
+
+   procedure Negative_Unsigned
+   is
+      use Z3;
+      Unused : constant LLU := Int (LLI'(-1)).Value;
+   begin
+      null; --  GCOV_EXCL_LINE
+   end Negative_Unsigned;
 
    procedure Test_Value (T : in out Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced  (T);
       use Z3;
    begin
-      Assert (Int (234).Value = 234, "invalid integer value");
-      Assert (Int (-1234567).Value = -1234567, "invalid negative integer value");
-      Assert (Int (0).Value = 0, "invalid zero integer value");
-      Assert (Int (Long_Long_Integer'First).Value = Long_Long_Integer'First,
-              "invalid first integer value");
-      Assert (Int (Long_Long_Integer'Last).Value = Long_Long_Integer'Last,
-              "invalid last integer value");
+      Assert (Int (LLI'(234)).Value = LLI'(234), "invalid integer value");
+      Assert (Int (LLI'(-1234567)).Value = LLI'(-1234567), "invalid negative integer value");
+      Assert (Int (LLI'(0)).Value = LLI'(0), "invalid zero integer value");
+      Assert (Int (LLI'First).Value = LLI'First, "invalid first integer value");
+      Assert (Int (LLI'Last).Value = LLI'Last, "invalid last integer value");
       Assert_Exception (Value_Of_Addition'Access, "value of addition raised no error");
+      Assert (Int (LLU'(234)).Value = LLU'(234), "invalid unsigned value");
+      Assert (Int (LLU'(0)).Value = LLU'(0), "invalid zero unsigned value");
+      Assert (Int (LLU'First).Value = LLU'First, "invalid first unsigned value");
+      Assert (Int (LLU'Last).Value = LLU'Last, "invalid last unsigned value");
+      Assert_Exception (Negative_Unsigned'Access, "negative unsigned raised no error");
    end Test_Value;
 
    ---------------------------------------------------------------------------
@@ -189,8 +244,8 @@ package body AZ3_Tests is
    is
       pragma Unreferenced (T);
       use Z3;
-      Expr     : Bool_Type := Int (1) < Int ("A");
-      Expected : Bool_Type := Int (1) < Int ("B");
+      Expr     : Bool_Type := Int (LLI'(1)) < Int ("A");
+      Expected : Bool_Type := Int (LLI'(1)) < Int ("B");
       Result   : Bool_Type := Bool (Substitute (Expr, Int ("A"), Int ("B")));
    begin
       Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
@@ -209,9 +264,9 @@ package body AZ3_Tests is
       Expected := Bool (False) or Bool ("C") or Bool (False);
       Result   := Bool (Substitute (Expr, Bool_Array'(Bool ("A"), Bool ("B")), Bool_Array'(Bool ("C"), Bool (False))));
       Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
-      Expr     := Int (1) + Int ("A") < Int ("B");
-      Expected := Int (1) + Int ("C") < Int (42);
-      Result   := Bool (Substitute (Expr, Int_Array'(Int ("A"), Int ("B")), Int_Array'(Int ("C"), Int (42))));
+      Expr     := Int (LLI'(1)) + Int ("A") < Int ("B");
+      Expected := Int (LLI'(1)) + Int ("C") < Int (LLI'(42));
+      Result   := Bool (Substitute (Expr, Int_Array'(Int ("A"), Int ("B")), Int_Array'(Int ("C"), Int (LLI'(42)))));
       Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
    end Test_Substitute;
 
@@ -225,6 +280,7 @@ package body AZ3_Tests is
       Register_Routine (T, Test_Set_Param_Value'Access, "Set configuration parameters");
       Register_Routine (T, Test_Booleans'Access, "Booleans");
       Register_Routine (T, Test_Integer'Access, "Integer");
+      Register_Routine (T, Test_Unsigned'Access, "Unsigned");
       Register_Routine (T, Test_Solver'Access, "Solver");
       Register_Routine (T, Test_Conflicting_Contexts'Access, "Conflicting contexts");
       Register_Routine (T, Test_String_Representation'Access, "String representation");
