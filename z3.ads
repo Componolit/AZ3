@@ -21,6 +21,8 @@ is
    function Same_Context (Left, Right : Expr_Type'Class) return Boolean;
    function Simplified (Value : Expr_Type) return Expr_Type;
    function "+" (Value : Expr_Type) return String;
+   function Eq (Left, Right : Expr_Type) return Boolean with
+      Pre => Same_Context (Left, Right);
 
    --  Boolean expressions
    type Bool_Type is new Expr_Type with private;

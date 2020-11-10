@@ -473,6 +473,15 @@ is
 
    ------------------------------------------------------------------------------------------------
 
+   function Eq (Left, Right : Expr_Type) return Boolean
+   is
+      use type z3_api_h.Z3_bool;
+   begin
+      return z3_api_h.Z3_is_eq_ast (Left.Context.Data, Left.Data, Right.Data) = 1;
+   end Eq;
+
+   ------------------------------------------------------------------------------------------------
+
    function Value (Data : Int_Type) return Long_Long_Integer
    is
       Success : z3_api_h.Z3_bool;

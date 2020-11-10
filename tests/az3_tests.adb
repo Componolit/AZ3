@@ -272,6 +272,23 @@ package body AZ3_Tests is
 
    ---------------------------------------------------------------------------
 
+   procedure Test_Equal (T : in out Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Z3;
+      function Create_Complex_Expr return Z3.Bool_Type is
+         ((Int ("E") >= Int (LLU'(0)) and Int ("E") <= Int (LLU'(0)))
+          or (Int ("E") >= Int (LLU'(1)) and Int ("E") <= Int (LLU'(127)))
+          or (Int ("E") >= Int (LLU'(128)) and Int ("E") <= Int (LLU'(255))));
+      E1 : constant Z3.Bool_Type := Create_Complex_Expr;
+      E2 : constant Z3.Bool_Type := Create_Complex_Expr;
+   begin
+      Assert (E1 = E2, +E1 & " /= " & "+" (E2));
+      Assert (Eq (E1, E2), +E1 & " not Eq " & "+" (E2));
+   end Test_Equal;
+
+   ---------------------------------------------------------------------------
+
    overriding
    procedure Register_Tests (T : in out Test_Case)
    is
@@ -286,6 +303,7 @@ package body AZ3_Tests is
       Register_Routine (T, Test_String_Representation'Access, "String representation");
       Register_Routine (T, Test_Value'Access, "Value");
       Register_Routine (T, Test_Substitute'Access, "Substitute");
+      Register_Routine (T, Test_Equal'Access, "Equal");
    end Register_Tests;
 
    ---------------------------------------------------------------------------
