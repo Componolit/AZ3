@@ -529,4 +529,34 @@ is
       return Result;
    end To_Z3_ast_array;
 
+   ------------------------------------------------------------------------------------------------
+
+   function Terms (Value : Expr_Type) return Natural
+   is
+      use type z3_api_h.Z3_ast_kind;
+   begin
+      if z3_api_h.Z3_get_ast_kind (Value.Context.Data, Value.Data) = 1 then
+         return Natural (z3_api_h.Z3_get_app_num_args (Value.Context.Data,
+                                                       z3_api_h.Z3_to_app (Value.Context.Data,
+                                                                           Value.Data)));
+      else
+         return 0;
+      end if;
+   end Terms;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Term (Value : Expr_Type;
+                  Index : Natural) return Expr_Type'Class
+   is
+   begin
+      if Index >= Terms (Value) then
+         raise Z3.Value_Error;
+      end if;
+      return Expr_Type'(Context => Value.Context,
+                        Data    => z3_api_h.Z3_get_app_arg (Value.Context.Data,
+                                                            z3_api_h.Z3_to_app (Value.Context.Data, Value.Data),
+                                                            Interfaces.C.unsigned (Index)));
+   end Term;
+
 end Z3;
