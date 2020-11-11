@@ -324,6 +324,44 @@ package body AZ3_Tests is
 
    ---------------------------------------------------------------------------
 
+   procedure Test_Kind (T : in out Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use type Z3.Int_Type;
+      use type Z3.Bool_Type;
+      use type Z3.Expr_Kind;
+   begin
+      Assert (Z3.Kind (Z3.Bool (True)) = Z3.Kind_Constant, "invalid bool constant");
+      Assert (Z3.Kind (Z3.Int (LLU'(1))) = Z3.Kind_Constant, "invalid int constant");
+      Assert (Z3.Kind (Z3.Bool ("A")) = Z3.Kind_Var, "invalid bool var " & Z3.Kind (Z3.Bool ("A"))'Img);
+      Assert (Z3.Kind (Z3.Int ("A")) = Z3.Kind_Var, "invalid int var " & Z3.Kind (Z3.Int ("A"))'Img);
+      Assert (Z3.Kind (Z3.Int ("A") = Z3.Int ("B")) = Z3.Kind_Equal, "invalid int equal");
+      Assert (Z3.Kind (Z3.Bool ("A") = Z3.Bool ("B")) = Z3.Kind_Equal, "invalid bool equal");
+      Assert (Z3.Kind (Z3.Int ("A") >= Z3.Int ("B")) = Z3.Kind_Greater_Equal, "invalid greater equal");
+      Assert (Z3.Kind (Z3.Int ("A") > Z3.Int ("B")) = Z3.Kind_Greater_Than, "invalid greater than");
+      Assert (Z3.Kind (Z3.Int ("A") <= Z3.Int ("B")) = Z3.Kind_Less_Equal, "invalid less equal");
+      Assert (Z3.Kind (Z3.Int ("A") < Z3.Int ("B")) = Z3.Kind_Less_Than, "invalid less than");
+      Assert (Z3.Kind (Z3.Bool ("A") and Z3.Bool ("B")) = Z3.Kind_And, "invalid and");
+      Assert (Z3.Kind (Z3.Conjunction (Z3.Bool_Array'(Z3.Bool ("A"), Z3.Bool ("B"), Z3.Bool ("C")))) = Z3.Kind_And,
+              "invalid conjunction");
+      Assert (Z3.Kind (Z3.Bool ("A") or Z3.Bool ("B")) = Z3.Kind_Or, "invalid or");
+      Assert (Z3.Kind (Z3.Disjunction (Z3.Bool_Array'(Z3.Bool ("A"), Z3.Bool ("B"), Z3.Bool ("C")))) = Z3.Kind_Or,
+              "invalid disjunction");
+      Assert (Z3.Kind (not Z3.Bool ("A")) = Z3.Kind_Not, "invalid not");
+      Assert (Z3.Kind (Z3.Int ("A") + Z3.Int ("B")) = Z3.Kind_Add, "invalid add");
+      Assert (Z3.Kind (Z3.Add (Z3.Int_Array'(Z3.Int ("A"), Z3.Int ("B"), Z3.Int ("C")))) = Z3.Kind_Add,
+              "invalid add (multiple)");
+      Assert (Z3.Kind (Z3.Int ("A") * Z3.Int ("B")) = Z3.Kind_Mul, "invalid mul");
+      Assert (Z3.Kind (Z3.Mul (Z3.Int_Array'(Z3.Int ("A"), Z3.Int ("B"), Z3.Int ("C")))) = Z3.Kind_Mul,
+              "invalid mul (multiple)");
+      Assert (Z3.Kind (Z3.Int ("A") - Z3.Int ("B")) = Z3.Kind_Sub, "invalid sub");
+      Assert (Z3.Kind (Z3.Int ("A") / Z3.Int ("B")) = Z3.Kind_Div, "invalid div");
+      Assert (Z3.Kind (Z3.Int ("A") mod Z3.Int ("B")) = Z3.Kind_Mod, "invalid mod");
+      Assert (Z3.Kind (Z3.Int ("A") ** Z3.Int ("B")) = Z3.Kind_Power, "invalid power");
+   end Test_Kind;
+
+   ---------------------------------------------------------------------------
+
    overriding
    procedure Register_Tests (T : in out Test_Case)
    is
@@ -339,6 +377,7 @@ package body AZ3_Tests is
       Register_Routine (T, Test_Value'Access, "Value");
       Register_Routine (T, Test_Substitute'Access, "Substitute");
       Register_Routine (T, Test_Terms'Access, "Terms");
+      Register_Routine (T, Test_Kind'Access, "Kind");
    end Register_Tests;
 
    ---------------------------------------------------------------------------
