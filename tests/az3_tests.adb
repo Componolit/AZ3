@@ -295,6 +295,7 @@ package body AZ3_Tests is
       I_2     : constant Z3.Int_Type  := I_Arg_1 + I_Arg_2;
       I_3     : constant Z3.Int_Type  := Z3.Add (Z3.Int_Array'(I_Arg_1, I_Arg_2, I_Arg_3));
       B_0     : constant Z3.Bool_Type := B_Arg_1;
+      B_1     : constant Z3.Bool_Type := not B_Arg_1;
       B_2     : constant Z3.Bool_Type := I_Arg_1 < I_Arg_2;
       B_3     : constant Z3.Bool_Type := Z3.Conjunction (Z3.Bool_Array'(B_Arg_1, B_Arg_2, B_Arg_3));
    begin
@@ -304,6 +305,7 @@ package body AZ3_Tests is
       Assert (Z3.Terms (I_2) = 2, "invalid argument count I_2");
       Assert (Z3.Terms (I_3) = 3, "invalid argument count I_3");
       Assert (Z3.Terms (B_0) = 0, "invalid argument count B_0");
+      Assert (Z3.Terms (B_1) = 1, "invalid argument count B_1");
       Assert (Z3.Terms (B_2) = 2, "invalid argument count B_2");
       Assert (Z3.Terms (B_3) = 3, "invalid argument count B_3");
       Assert (Z3.Int (Z3.Term (I_2, 0)) = I_Arg_1, "I_2 (0) /= I_Arg_1");
@@ -311,6 +313,7 @@ package body AZ3_Tests is
       Assert (Z3.Int (Z3.Term (I_3, 0)) = I_Arg_1, "I_3 (0) /= I_Arg_1");
       Assert (Z3.Int (Z3.Term (I_3, 1)) = I_Arg_2, "I_3 (1) /= I_Arg_2");
       Assert (Z3.Int (Z3.Term (I_3, 2)) = I_Arg_3, "I_3 (2) /= I_Arg_3");
+      Assert (Z3.Bool (Z3.Term (B_1, 0)) = B_Arg_1, "B_1 (0) /= B_Arg_1");
       Assert (Z3.Int (Z3.Term (B_2, 0)) = I_Arg_1, "B_2 (0) /= I_Arg_1");
       Assert (Z3.Int (Z3.Term (B_2, 1)) = I_Arg_2, "B_2 (1) /= I_Arg_2");
       Assert (Z3.Bool (Z3.Term (B_3, 0)) = B_Arg_1, "B_3 (0) /= B_Arg_1");
