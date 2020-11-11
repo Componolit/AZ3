@@ -10,6 +10,24 @@ is
    type Context is private;
    type Result is (Result_True, Result_False, Result_Undef);
 
+   type Expr_Kind is (Kind_Any,
+                      Kind_Constant,
+                      Kind_Var,
+                      Kind_Equal,
+                      Kind_Greater_Equal,
+                      Kind_Greater_Than,
+                      Kind_Less_Equal,
+                      Kind_Less_Than,
+                      Kind_And,
+                      Kind_Or,
+                      Kind_Not,
+                      Kind_Add,
+                      Kind_Mul,
+                      Kind_Sub,
+                      Kind_Div,
+                      Kind_Mod,
+                      Kind_Power);
+
    Default_Context : constant Context;
    function New_Context return Context;
 
@@ -25,6 +43,7 @@ is
    function Terms (Value : Expr_Type) return Natural;
    function Term (Value : Expr_Type;
                   Index : Natural) return Expr_Type'Class;
+   function Kind (Value : Expr_Type) return Expr_Kind;
 
    --  Boolean expressions
    type Bool_Type is new Expr_Type with private;

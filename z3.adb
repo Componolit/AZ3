@@ -559,4 +559,41 @@ is
                                                             Interfaces.C.unsigned (Index)));
    end Term;
 
+   ------------------------------------------------------------------------------------------------
+
+   function Kind (Value : Expr_Type) return Expr_Kind
+   is
+      Ctx       : constant z3_api_h.Z3_context := Value.Context.Data;
+      Decl_Kind : z3_api_h.Z3_decl_kind;
+   begin
+      case z3_api_h.Z3_get_ast_kind (Ctx, Value.Data) is
+         when 0 =>
+            return Kind_Constant;
+         when 1 =>
+            Decl_Kind := z3_api_h.Z3_get_decl_kind
+                            (Ctx, z3_api_h.Z3_get_app_decl (Ctx, z3_api_h.Z3_to_app (Ctx, Value.Data)));
+            case Decl_Kind is
+               when z3_api_h.Z3_OP_TRUE | z3_api_h.Z3_OP_FALSE => return Kind_Constant;
+               when z3_api_h.Z3_OP_EQ                          => return Kind_Equal;
+               when z3_api_h.Z3_OP_AND                         => return Kind_And;
+               when z3_api_h.Z3_OP_OR                          => return Kind_Or;
+               when z3_api_h.Z3_OP_NOT                         => return Kind_Not;
+               when z3_api_h.Z3_OP_LE                          => return Kind_Less_Equal;
+               when z3_api_h.Z3_OP_GE                          => return Kind_Greater_Equal;
+               when z3_api_h.Z3_OP_LT                          => return Kind_Less_Than;
+               when z3_api_h.Z3_OP_GT                          => return Kind_Greater_Than;
+               when z3_api_h.Z3_OP_ADD                         => return Kind_Add;
+               when z3_api_h.Z3_OP_SUB                         => return Kind_Sub;
+               when z3_api_h.Z3_OP_MUL                         => return Kind_Mul;
+               when z3_api_h.Z3_OP_DIV | z3_api_h.Z3_OP_IDIV   => return Kind_Div;
+               when z3_api_h.Z3_OP_MOD                         => return Kind_Mod;
+               when z3_api_h.Z3_OP_POWER                       => return Kind_Power;
+               when z3_api_h.Z3_OP_UNINTERPRETED               => return Kind_Var;
+               when others                                     => return Kind_Any;  --  GCOV_EXCL_LINE
+            end case;
+         when others =>  --  GCOV_EXCL_LINE
+            return Kind_Any;  --  GCOV_EXCL_LINE
+      end case;
+   end Kind;
+
 end Z3;
