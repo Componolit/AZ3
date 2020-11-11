@@ -22,6 +22,10 @@ is
    function Simplified (Value : Expr_Type) return Expr_Type;
    function "+" (Value : Expr_Type) return String;
 
+   function Terms (Value : Expr_Type) return Natural;
+   function Term (Value : Expr_Type;
+                  Index : Natural) return Expr_Type'Class;
+
    --  Boolean expressions
    type Bool_Type is new Expr_Type with private;
    type Bool_Array is array (Natural range <>) of Bool_Type;
