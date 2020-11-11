@@ -72,6 +72,10 @@ is
                           Same_Context (Expr, From (From'First))
                           and then Same_Context (From & To));
 
+   overriding
+   function "&" (Left, Right : Bool_Type) return Bool_Array with
+      Pre => Same_Context (Left, Right);
+
    function "=" (Left, Right : Bool_Type) return Bool_Type with
       Pre => Same_Context (Left, Right);
 
@@ -124,6 +128,10 @@ is
    function Value (Data : Int_Type) return Long_Long_Integer;
 
    function Value (Data : Int_Type) return Long_Long_Unsigned;
+
+   overriding
+   function "&" (Left, Right : Int_Type) return Int_Array with
+      Pre => Same_Context (Left, Right);
 
    function "=" (Left : Int_Type'Class; Right : Int_Type'Class) return Bool_Type with
       Pre => Same_Context (Left, Right);
@@ -251,5 +259,10 @@ private
                         From : Int_Type;
                         To   : Int_Type) return Expr_Type'Class is
       (Substitute (Expr, Int_Array'(1 => From), Int_Array'(1 => To)));
+
+   overriding
+   function "&" (Left, Right : Bool_Type) return Bool_Array is (Bool_Array'(Left, Right));
+   overriding
+   function "&" (Left, Right : Int_Type) return Int_Array is (Int_Array'(Left, Right));
 
 end Z3;

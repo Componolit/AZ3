@@ -262,11 +262,11 @@ package body AZ3_Tests is
       Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
       Expr     := Bool (False) or Bool ("A") or Bool ("B");
       Expected := Bool (False) or Bool ("C") or Bool (False);
-      Result   := Bool (Substitute (Expr, Bool_Array'(Bool ("A"), Bool ("B")), Bool_Array'(Bool ("C"), Bool (False))));
+      Result   := Bool (Substitute (Expr, Bool ("A") & Bool ("B"), Bool ("C") & Bool (False)));
       Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
       Expr     := Int (LLI'(1)) + Int ("A") < Int ("B");
       Expected := Int (LLI'(1)) + Int ("C") < Int (LLI'(42));
-      Result   := Bool (Substitute (Expr, Int_Array'(Int ("A"), Int ("B")), Int_Array'(Int ("C"), Int (LLI'(42)))));
+      Result   := Bool (Substitute (Expr, Int ("A") & Int ("B"), Int ("C") & Int (LLI'(42))));
       Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
    end Test_Substitute;
 
@@ -285,6 +285,8 @@ package body AZ3_Tests is
       pragma Unreferenced (T);
       use type Z3.Int_Type;
       use type Z3.Bool_Type;
+      use type Z3.Int_Array;
+      use type Z3.Bool_Array;
       I_Arg_1 : constant Z3.Int_Type  := Z3.Int ("A");
       I_Arg_2 : constant Z3.Int_Type  := Z3.Int ("B");
       I_Arg_3 : constant Z3.Int_Type  := Z3.Int (LLU'(2));
@@ -293,11 +295,11 @@ package body AZ3_Tests is
       B_Arg_3 : constant Z3.Bool_Type := Z3.Bool (True);
       I_0     : constant Z3.Int_Type  := I_Arg_1;
       I_2     : constant Z3.Int_Type  := I_Arg_1 + I_Arg_2;
-      I_3     : constant Z3.Int_Type  := Z3.Add (Z3.Int_Array'(I_Arg_1, I_Arg_2, I_Arg_3));
+      I_3     : constant Z3.Int_Type  := Z3.Add (I_Arg_1 & I_Arg_2 & I_Arg_3);
       B_0     : constant Z3.Bool_Type := B_Arg_1;
       B_1     : constant Z3.Bool_Type := not B_Arg_1;
       B_2     : constant Z3.Bool_Type := I_Arg_1 < I_Arg_2;
-      B_3     : constant Z3.Bool_Type := Z3.Conjunction (Z3.Bool_Array'(B_Arg_1, B_Arg_2, B_Arg_3));
+      B_3     : constant Z3.Bool_Type := Z3.Conjunction (B_Arg_1 & B_Arg_2 & B_Arg_3);
    begin
       Assert (Z3.Terms (Z3.Int (LLU'(0))) = 0, "invalid argument count 0");
       Assert (Z3.Terms (Z3.Bool (True)) = 0, "invalid argument count True");
@@ -329,6 +331,8 @@ package body AZ3_Tests is
       pragma Unreferenced (T);
       use type Z3.Int_Type;
       use type Z3.Bool_Type;
+      use type Z3.Int_Array;
+      use type Z3.Bool_Array;
       use type Z3.Expr_Kind;
    begin
       Assert (Z3.Kind (Z3.Bool (True)) = Z3.Kind_Constant, "invalid bool constant");
@@ -342,17 +346,17 @@ package body AZ3_Tests is
       Assert (Z3.Kind (Z3.Int ("A") <= Z3.Int ("B")) = Z3.Kind_Less_Equal, "invalid less equal");
       Assert (Z3.Kind (Z3.Int ("A") < Z3.Int ("B")) = Z3.Kind_Less_Than, "invalid less than");
       Assert (Z3.Kind (Z3.Bool ("A") and Z3.Bool ("B")) = Z3.Kind_And, "invalid and");
-      Assert (Z3.Kind (Z3.Conjunction (Z3.Bool_Array'(Z3.Bool ("A"), Z3.Bool ("B"), Z3.Bool ("C")))) = Z3.Kind_And,
+      Assert (Z3.Kind (Z3.Conjunction (Z3.Bool ("A") & Z3.Bool ("B") & Z3.Bool ("C"))) = Z3.Kind_And,
               "invalid conjunction");
       Assert (Z3.Kind (Z3.Bool ("A") or Z3.Bool ("B")) = Z3.Kind_Or, "invalid or");
-      Assert (Z3.Kind (Z3.Disjunction (Z3.Bool_Array'(Z3.Bool ("A"), Z3.Bool ("B"), Z3.Bool ("C")))) = Z3.Kind_Or,
+      Assert (Z3.Kind (Z3.Disjunction (Z3.Bool ("A") & Z3.Bool ("B") & Z3.Bool ("C"))) = Z3.Kind_Or,
               "invalid disjunction");
       Assert (Z3.Kind (not Z3.Bool ("A")) = Z3.Kind_Not, "invalid not");
       Assert (Z3.Kind (Z3.Int ("A") + Z3.Int ("B")) = Z3.Kind_Add, "invalid add");
-      Assert (Z3.Kind (Z3.Add (Z3.Int_Array'(Z3.Int ("A"), Z3.Int ("B"), Z3.Int ("C")))) = Z3.Kind_Add,
+      Assert (Z3.Kind (Z3.Add (Z3.Int ("A") & Z3.Int ("B") & Z3.Int ("C"))) = Z3.Kind_Add,
               "invalid add (multiple)");
       Assert (Z3.Kind (Z3.Int ("A") * Z3.Int ("B")) = Z3.Kind_Mul, "invalid mul");
-      Assert (Z3.Kind (Z3.Mul (Z3.Int_Array'(Z3.Int ("A"), Z3.Int ("B"), Z3.Int ("C")))) = Z3.Kind_Mul,
+      Assert (Z3.Kind (Z3.Mul (Z3.Int ("A") & Z3.Int ("B") & Z3.Int ("C"))) = Z3.Kind_Mul,
               "invalid mul (multiple)");
       Assert (Z3.Kind (Z3.Int ("A") - Z3.Int ("B")) = Z3.Kind_Sub, "invalid sub");
       Assert (Z3.Kind (Z3.Int ("A") / Z3.Int ("B")) = Z3.Kind_Div, "invalid div");
