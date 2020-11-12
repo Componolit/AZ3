@@ -76,10 +76,10 @@ is
    function "&" (Left, Right : Bool_Type) return Bool_Array with
       Pre => Same_Context (Left, Right);
 
-   function "=" (Left, Right : Bool_Type) return Bool_Type with
+   function "=" (Left, Right : Expr_Type'Class) return Bool_Type with
       Pre => Same_Context (Left, Right);
 
-   function "/=" (Left, Right : Bool_Type) return Bool_Type with
+   function "/=" (Left, Right : Expr_Type'Class) return Bool_Type with
       Pre => Same_Context (Left, Right);
 
    function "not" (Value : Bool_Type) return Bool_Type;
@@ -131,12 +131,6 @@ is
 
    overriding
    function "&" (Left, Right : Int_Type) return Int_Array with
-      Pre => Same_Context (Left, Right);
-
-   function "=" (Left : Int_Type'Class; Right : Int_Type'Class) return Bool_Type with
-      Pre => Same_Context (Left, Right);
-
-   function "/=" (Left : Int_Type'Class; Right : Int_Type'Class) return Bool_Type with
       Pre => Same_Context (Left, Right);
 
    function Add (Values : Int_Array) return Int_Type with

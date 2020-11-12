@@ -63,10 +63,8 @@ is
               Context => Left.Context);
    end Equal;
 
-   function "=" (Left, Right : Bool_Type) return Bool_Type is (Equal (Left, Right));
-   function "/=" (Left, Right : Bool_Type) return Bool_Type is (not Equal (Left, Right));
-   function "=" (Left, Right : Int_Type'Class) return Bool_Type is (Equal (Left, Right));
-   function "/=" (Left, Right : Int_Type'Class) return Bool_Type is (not Equal (Left, Right));
+   function "=" (Left, Right : Expr_Type'Class) return Bool_Type is (Equal (Left, Right));
+   function "/=" (Left, Right : Expr_Type'Class) return Bool_Type is (not Equal (Left, Right));
 
    ------------------------------------------------------------------------------------------------
 
