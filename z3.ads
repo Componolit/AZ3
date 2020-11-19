@@ -39,6 +39,9 @@ is
    function Same_Context (Left, Right : Expr_Type'Class) return Boolean;
    function Simplified (Value : Expr_Type) return Expr_Type;
    function "+" (Value : Expr_Type) return String;
+   overriding
+   function "=" (Left, Right : Expr_Type) return Boolean with
+      Pre => Same_Context (Left, Right);
 
    function Terms (Value : Expr_Type) return Natural;
    function Term (Value : Expr_Type;
