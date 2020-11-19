@@ -594,4 +594,14 @@ is
       end case;
    end Kind;
 
+   ------------------------------------------------------------------------------------------------
+
+   overriding
+   function "=" (Left, Right : Expr_Type) return Boolean
+   is
+      use type z3_api_h.Z3_bool;
+   begin
+      return z3_api_h.Z3_is_eq_ast (Left.Context.Data, Left.Data, Right.Data) = 1;
+   end "=";
+
 end Z3;
