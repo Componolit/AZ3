@@ -195,6 +195,37 @@ is
                     Context :        Z3.Context := Default_Context) with
       Pre => Has_Context (Solver, Context);
 
+   type Optimize is tagged limited private;
+
+   function Create (Context : Z3.Context := Default_Context) return Optimize;
+
+   function Has_Context (Optimize : Z3.Optimize;
+                         Context  : Z3.Context) return Boolean;
+
+   function Same_Context (Optimize : Z3.Optimize;
+                          Term     : Z3.Expr_Type'Class) return Boolean;
+
+   procedure Assert (Optimize : in out Z3.Optimize;
+                     Fact     :        Bool_Type'Class) with
+      Pre => Same_Context (Optimize, Fact);
+
+   procedure Minimize (Optimize : in out Z3.Optimize;
+                       Term     :        Z3.Int_Type'Class) with
+      Pre => Same_Context (Optimize, Term);
+
+   procedure Maximize (Optimize : in out Z3.Optimize;
+                       Term     :        Z3.Int_Type'Class) with
+      Pre => Same_Context (Optimize, Term);
+
+   procedure Check (Optimize : in out Z3.Optimize;
+                    Result   :    out Z3.Result);
+
+   function Lower (Optimize  : Z3.Optimize;
+                   Objective : Natural) return Z3.Int_Type'Class;
+
+   function Upper (Optimize  : Z3.Optimize;
+                   Objective : Natural) return Z3.Int_Type'Class;
+
 private
 
    type Config is
@@ -224,6 +255,11 @@ private
       end record;
 
    type Z3_ast_array is array (Natural range <>) of z3_api_h.Z3_ast;
+
+   type Optimize is tagged limited record
+      Data    : z3_api_h.Z3_optimize;
+      Context : Z3.Context;
+   end record;
 
    function To_Z3_ast_array (Value : Bool_Array) return Z3_ast_array with
       Pre  => Same_Context (Value),

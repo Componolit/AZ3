@@ -1,3 +1,4 @@
+with Interfaces.C;
 with Interfaces.C.Extensions;
 with Interfaces.C.Strings;
 
@@ -603,5 +604,94 @@ is
    begin
       return z3_api_h.Z3_is_eq_ast (Left.Context.Data, Left.Data, Right.Data) = 1;
    end "=";
+
+   ------------------------------------------------------------------------------------------------
+
+   function Create (Context : Z3.Context := Default_Context) return Optimize
+   is
+   begin
+      return Optimize'(Data    => z3_api_h.Z3_mk_optimize (Context.Data),
+                       Context => Context);
+   end Create;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Has_Context (Optimize : Z3.Optimize;
+                         Context  : Z3.Context) return Boolean is (Optimize.Context.Data = Context.Data);
+
+   ------------------------------------------------------------------------------------------------
+
+   function Same_Context (Optimize : Z3.Optimize;
+                          Term     : Z3.Expr_Type'Class) return Boolean is
+      (Optimize.Context.Data = Term.Context.Data);
+
+   ------------------------------------------------------------------------------------------------
+
+   procedure Assert (Optimize : in out Z3.Optimize;
+                     Fact     :        Bool_Type'Class)
+   is
+   begin
+      z3_api_h.Z3_optimize_assert (Optimize.Context.Data, Optimize.Data, Fact.Data);
+   end Assert;
+
+   ------------------------------------------------------------------------------------------------
+
+   procedure Minimize (Optimize : in out Z3.Optimize;
+                       Term     :        Z3.Int_Type'Class)
+   is
+      Ignore : Interfaces.C.unsigned;
+   begin
+      Ignore := z3_api_h.Z3_optimize_minimize (Optimize.Context.Data, Optimize.Data, Term.Data);
+   end Minimize;
+
+   ------------------------------------------------------------------------------------------------
+
+   procedure Maximize (Optimize : in out Z3.Optimize;
+                       Term     :        Z3.Int_Type'Class)
+   is
+      Ignore : Interfaces.C.unsigned;
+   begin
+      Ignore := z3_api_h.Z3_optimize_maximize (Optimize.Context.Data, Optimize.Data, Term.Data);
+   end Maximize;
+
+   ------------------------------------------------------------------------------------------------
+
+   procedure Check (Optimize : in out Z3.Optimize;
+                    Result   :    out Z3.Result)
+   is
+      Check_Result : z3_api_h.Z3_lbool;
+   begin
+      Check_Result := z3_api_h.Z3_optimize_check (Optimize.Context.Data, Optimize.Data);
+      case Check_Result is
+         when z3_api_h.Z3_L_FALSE => Result := Result_False;
+         when z3_api_h.Z3_L_TRUE  => Result := Result_True;
+         when z3_api_h.Z3_L_UNDEF => Result := Result_Undef;
+         when others => raise Z3.Internal_Error; --  GCOV_EXCL_LINE
+      end case;
+   end Check;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Lower (Optimize  : Z3.Optimize;
+                   Objective : Natural) return Z3.Int_Type'Class
+   is
+   begin
+      return Z3.Int_Type'(Data    => z3_api_h.Z3_optimize_get_lower (Optimize.Context.Data,
+                                                                     Optimize.Data,
+                                                                     Interfaces.C.unsigned (Objective)),
+                          Context => Optimize.Context);
+   end Lower;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Upper (Optimize  : Z3.Optimize;
+                   Objective : Natural) return Z3.Int_Type'Class
+   is
+   begin
+      return Z3.Int_Type'(Data    => z3_api_h.Z3_optimize_get_upper (Optimize.Context.Data,
+                                                                     Optimize.Data,
+                                                                     Interfaces.C.unsigned (Objective)),
+                          Context => Optimize.Context);
+   end Upper;
 
 end Z3;
