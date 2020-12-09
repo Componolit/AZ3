@@ -366,6 +366,40 @@ package body AZ3_Tests is
 
    ---------------------------------------------------------------------------
 
+   procedure Test_Optimize (T : in out Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use type Z3.Bool_Type;
+      use type Z3.Int_Type;
+      use type Z3.Result;
+      Optimize : Z3.Optimize := Z3.Create;
+      Result   : Z3.Result;
+   begin
+      Assert (Z3.Has_Context (Optimize, Z3.Default_Context), "Invalid context");
+      Optimize.Assert ((Z3.Int ("A") >= Z3.Int (LLU'(10)))
+                       and (Z3.Int ("A") < Z3.Int (LLU'(50))));
+      Optimize.Assert ((Z3.Int ("B") >= Z3.Int (LLU'(20)))
+                       and (Z3.Int ("B") <= Z3.Int (LLU'(42))));
+      --  Optimize.Assert (Z3.Int ("C") > Z3.Int (LLU'(100)));
+      Optimize.Minimize (Z3.Int ("A"));
+      Optimize.Maximize (Z3.Int ("B"));
+      --  Optimize.Minimize (Z3.Int ("C"));
+      Optimize.Check (Result);
+      Assert (Result = Z3.Result_True, "Optimize not sat");
+      Assert (Z3.Int_Type (Optimize.Lower (0)) = Z3.Int (LLU'(10)), "Invalid lower");
+      Assert (Z3.Int_Type (Optimize.Upper (1)) = Z3.Int (LLU'(42)), "Invalid upper");
+      --  Assert (Z3.Int_Type (Optimize.Upper (2)) = Z3.Int ("oo"),
+      --          "Invalid: & " & Z3."+" (Z3.Int_Type (Optimize.Upper (2))));
+      Optimize.Assert (Z3.Int ("X") ** Z3.Int ("Y") >= Z3.Int ("X"));
+      Optimize.Check (Result);
+      Assert (Result = Z3.Result_Undef, "expected Undef");
+      Optimize.Assert (Z3.Int ("X") < Z3.Int (LLI'(3)) and Z3.Int ("X") > Z3.Int (LLI'(100)));
+      Optimize.Check (Result);
+      Assert (Result = Z3.Result_False, "contradiction not found");
+   end Test_Optimize;
+
+   ---------------------------------------------------------------------------
+
    overriding
    procedure Register_Tests (T : in out Test_Case)
    is
@@ -382,6 +416,7 @@ package body AZ3_Tests is
       Register_Routine (T, Test_Substitute'Access, "Substitute");
       Register_Routine (T, Test_Terms'Access, "Terms");
       Register_Routine (T, Test_Kind'Access, "Kind");
+      Register_Routine (T, Test_Optimize'Access, "Optimize");
    end Register_Tests;
 
    ---------------------------------------------------------------------------
