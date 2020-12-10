@@ -1,6 +1,6 @@
-with Interfaces.C;
 with Interfaces.C.Extensions;
 with Interfaces.C.Strings;
+with Ada.Strings.Hash;
 
 package body Z3
 is
@@ -544,7 +544,6 @@ is
 
    function Terms (Value : Expr_Type) return Natural
    is
-      use type z3_api_h.Z3_ast_kind;
    begin
       if z3_api_h.Z3_get_ast_kind (Value.Context.Data, Value.Data) = 1 then
          return Natural (z3_api_h.Z3_get_app_num_args (Value.Context.Data,
@@ -625,8 +624,9 @@ is
    begin
       --  ISSUE: Componolit/AZ3#9
       z3_api_h.Z3_optimize_inc_ref (Context.Data, Opt);
-      return Optimize'(Data    => Opt,
-                       Context => Context);
+      return Optimize'(Data       => Opt,
+                       Context    => Context,
+                       Objectives => Int_Maps.Empty_Map);
    end Create;
 
    ------------------------------------------------------------------------------------------------
@@ -673,6 +673,7 @@ is
       Ignore : Interfaces.C.unsigned;
    begin
       Ignore := z3_api_h.Z3_optimize_minimize (Optimize.Context.Data, Optimize.Data, Term.Data);
+      Optimize.Objectives.Insert (Term, Interfaces.C.unsigned (Optimize.Objectives.Length));
    end Minimize;
 
    ------------------------------------------------------------------------------------------------
@@ -683,6 +684,7 @@ is
       Ignore : Interfaces.C.unsigned;
    begin
       Ignore := z3_api_h.Z3_optimize_maximize (Optimize.Context.Data, Optimize.Data, Term.Data);
+      Optimize.Objectives.Insert (Term, Interfaces.C.unsigned (Optimize.Objectives.Length));
    end Maximize;
 
    ------------------------------------------------------------------------------------------------
@@ -704,25 +706,29 @@ is
    ------------------------------------------------------------------------------------------------
 
    function Lower (Optimize  : Z3.Optimize;
-                   Objective : Natural) return Z3.Int_Type'Class
+                   Objective : Z3.Int_Type'Class) return Z3.Int_Type'Class
    is
    begin
       return Z3.Int_Type'(Data    => z3_api_h.Z3_optimize_get_lower (Optimize.Context.Data,
                                                                      Optimize.Data,
-                                                                     Interfaces.C.unsigned (Objective)),
+                                                                     Optimize.Objectives (Objective)),
                           Context => Optimize.Context);
    end Lower;
 
    ------------------------------------------------------------------------------------------------
 
    function Upper (Optimize  : Z3.Optimize;
-                   Objective : Natural) return Z3.Int_Type'Class
+                   Objective : Z3.Int_Type'Class) return Z3.Int_Type'Class
    is
    begin
       return Z3.Int_Type'(Data    => z3_api_h.Z3_optimize_get_upper (Optimize.Context.Data,
                                                                      Optimize.Data,
-                                                                     Interfaces.C.unsigned (Objective)),
+                                                                     Optimize.Objectives (Objective)),
                           Context => Optimize.Context);
    end Upper;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Hash (Key : Z3.Int_Type'Class) return Ada.Containers.Hash_Type is (Ada.Strings.Hash (+Key));
 
 end Z3;
