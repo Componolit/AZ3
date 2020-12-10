@@ -202,9 +202,8 @@ is
 
    function Create (Context : Z3.Context := Default_Context) return Optimize;
 
-   --  ISSUE: Z3Prover/z3#4885
-   --  procedure Set_Timeout (Optimize : in out Z3.Optimize;
-   --                         Timeout  :        Natural := 1000);
+   procedure Set_Timeout (Optimize : in out Z3.Optimize;
+                          Timeout  :        Natural := 1000);
 
    function Has_Context (Optimize : Z3.Optimize;
                          Context  : Z3.Context) return Boolean;
