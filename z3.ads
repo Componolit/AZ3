@@ -1,5 +1,9 @@
 with z3_api_h;
 
+private with Ada.Containers;
+private with Ada.Containers.Indefinite_Hashed_Maps;
+private with Interfaces.C;
+
 package Z3
 is
    Internal_Error : exception;
@@ -227,10 +231,10 @@ is
                     Result   :    out Z3.Result);
 
    function Lower (Optimize  : Z3.Optimize;
-                   Objective : Natural) return Z3.Int_Type'Class;
+                   Objective : Z3.Int_Type'Class) return Z3.Int_Type'Class;
 
    function Upper (Optimize  : Z3.Optimize;
-                   Objective : Natural) return Z3.Int_Type'Class;
+                   Objective : Z3.Int_Type'Class) return Z3.Int_Type'Class;
 
 private
 
@@ -262,9 +266,16 @@ private
 
    type Z3_ast_array is array (Natural range <>) of z3_api_h.Z3_ast;
 
+   function Hash (Key : Z3.Int_Type'Class) return Ada.Containers.Hash_Type;
+
+   use type Interfaces.C.unsigned;
+   package Int_Maps is new Ada.Containers.Indefinite_Hashed_Maps
+      (Z3.Int_Type'Class, Interfaces.C.unsigned, Hash, "=");
+
    type Optimize is tagged limited record
-      Data    : z3_api_h.Z3_optimize;
-      Context : Z3.Context;
+      Data       : z3_api_h.Z3_optimize;
+      Context    : Z3.Context;
+      Objectives : Int_Maps.Map;
    end record;
 
    function To_Z3_ast_array (Value : Bool_Array) return Z3_ast_array with

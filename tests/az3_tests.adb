@@ -384,8 +384,8 @@ package body AZ3_Tests is
       Optimize.Maximize (Z3.Int ("B"));
       Optimize.Check (Result);
       Assert (Result = Z3.Result_True, "Optimize not sat");
-      Assert (Z3.Int_Type (Optimize.Lower (0)) = Z3.Int (LLU'(10)), "Invalid lower");
-      Assert (Z3.Int_Type (Optimize.Upper (1)) = Z3.Int (LLU'(42)), "Invalid upper");
+      Assert (Z3.Int_Type (Optimize.Lower (Z3.Int ("A"))) = Z3.Int (LLU'(10)), "Invalid lower");
+      Assert (Z3.Int_Type (Optimize.Upper (Z3.Int ("B"))) = Z3.Int (LLU'(42)), "Invalid upper");
       Optimize.Assert (Z3.Int ("C") > Z3.Int (LLU'(100)));
       Optimize.Maximize (Z3.Int ("C"));
       Optimize.Check (Result);
