@@ -21,6 +21,19 @@ is
 
    ------------------------------------------------------------------------------------------------
 
+   procedure Set_Global_Param_Value (ID : String; Value : String)
+   is
+      C_ID    : chars_ptr := New_String (ID);
+      C_Value : chars_ptr := New_String (Value);
+   begin
+      z3_api_h.Z3_global_param_set (z3_api_h.Z3_string (C_ID),
+                                    z3_api_h.Z3_string (C_Value));
+      Free (C_ID);
+      Free (C_Value);
+   end Set_Global_Param_Value;
+
+   ------------------------------------------------------------------------------------------------
+
    function Bool (Name : String; Context : Z3.Context := Default_Context) return Bool_Type
    is
       C_Name : constant chars_ptr := New_String (Name);
@@ -119,8 +132,7 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function New_Context return Context is
-      ((Data => z3_api_h.Z3_mk_context (Default_Config.Data)));
+   function New_Context return Context is ((Data => z3_api_h.Z3_mk_context (z3_api_h.Z3_mk_config)));
 
    ------------------------------------------------------------------------------------------------
 
@@ -613,6 +625,23 @@ is
       return Optimize'(Data    => z3_api_h.Z3_mk_optimize (Context.Data),
                        Context => Context);
    end Create;
+
+   ------------------------------------------------------------------------------------------------
+
+   --  ISSUE: Z3Prover/z3#4885
+   --  procedure Set_Timeout (Optimize : in out Z3.Optimize;
+   --                         Timeout  :        Natural := 1000)
+   --  is
+   --     Param_Name : constant chars_ptr := New_String ("timeout");
+   --     Params     : constant z3_api_h.Z3_params := z3_api_h.Z3_mk_params (Optimize.Context.Data);
+   --  begin
+   --     z3_api_h.Z3_params_set_uint
+   --        (Optimize.Context.Data,
+   --         Params,
+   --         z3_api_h.Z3_mk_string_symbol (Optimize.Context.Data, z3_api_h.Z3_string (Param_Name)),
+   --         Interfaces.C.unsigned (Timeout));
+   --     z3_api_h.Z3_optimize_set_params (Optimize.Context.Data, Optimize.Data, Params);
+   --  end Set_Timeout;
 
    ------------------------------------------------------------------------------------------------
 
