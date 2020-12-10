@@ -372,30 +372,34 @@ package body AZ3_Tests is
       use type Z3.Bool_Type;
       use type Z3.Int_Type;
       use type Z3.Result;
-      Optimize : Z3.Optimize := Z3.Create;
-      Result   : Z3.Result;
    begin
-      Assert (Z3.Has_Context (Optimize, Z3.Default_Context), "Invalid context");
-      Optimize.Assert ((Z3.Int ("A") >= Z3.Int (LLU'(10)))
-                       and (Z3.Int ("A") < Z3.Int (LLU'(50))));
-      Optimize.Assert ((Z3.Int ("B") >= Z3.Int (LLU'(20)))
-                       and (Z3.Int ("B") <= Z3.Int (LLU'(42))));
-      --  Optimize.Assert (Z3.Int ("C") > Z3.Int (LLU'(100)));
-      Optimize.Minimize (Z3.Int ("A"));
-      Optimize.Maximize (Z3.Int ("B"));
-      --  Optimize.Minimize (Z3.Int ("C"));
-      Optimize.Check (Result);
-      Assert (Result = Z3.Result_True, "Optimize not sat");
-      Assert (Z3.Int_Type (Optimize.Lower (0)) = Z3.Int (LLU'(10)), "Invalid lower");
-      Assert (Z3.Int_Type (Optimize.Upper (1)) = Z3.Int (LLU'(42)), "Invalid upper");
-      --  Assert (Z3.Int_Type (Optimize.Upper (2)) = Z3.Int ("oo"),
-      --          "Invalid: & " & Z3."+" (Z3.Int_Type (Optimize.Upper (2))));
-      Optimize.Assert (Z3.Int ("X") ** Z3.Int ("Y") >= Z3.Int ("X"));
-      Optimize.Check (Result);
-      Assert (Result = Z3.Result_Undef, "expected Undef");
-      Optimize.Assert (Z3.Int ("X") < Z3.Int (LLI'(3)) and Z3.Int ("X") > Z3.Int (LLI'(100)));
-      Optimize.Check (Result);
-      Assert (Result = Z3.Result_False, "contradiction not found");
+      Z3.Set_Global_Param_Value ("timeout", "1");
+      declare
+         Ctx : constant Z3.Context := Z3.New_Context;
+         Optimize : Z3.Optimize := Z3.Create (Ctx);
+         Result   : Z3.Result;
+         function Int (Name : String) return Z3.Int_Type is (Z3.Int (Name, Ctx));
+         function Int (Value : LLU) return Z3.Int_Type is (Z3.Int (Value, Ctx));
+      begin
+         Assert (Z3.Has_Context (Optimize, Ctx), "Invalid context");
+         Optimize.Assert ((Int ("A") >= Int (10))
+                          and (Int ("A") < Int (50)));
+         Optimize.Assert ((Int ("B") >= Int (20))
+                          and (Int ("B") <= Int (42)));
+         Optimize.Minimize (Int ("A"));
+         Optimize.Maximize (Int ("B"));
+         Optimize.Check (Result);
+         Assert (Result = Z3.Result_True, "Optimize not sat");
+         Assert (Z3.Int_Type (Optimize.Lower (0)) = Int (10), "Invalid lower");
+         Assert (Z3.Int_Type (Optimize.Upper (1)) = Int (42), "Invalid upper");
+         Optimize.Assert (Int ("C") > Int (100));
+         Optimize.Maximize (Int ("C"));
+         Optimize.Check (Result);
+         Assert (Result = Z3.Result_Undef, "Optimize sat");
+         Optimize.Assert (Int ("X") < Int (3) and Int ("X") > Int (100));
+         Optimize.Check (Result);
+         Assert (Result = Z3.Result_False, "contradiction not found");
+      end;
    end Test_Optimize;
 
    ---------------------------------------------------------------------------

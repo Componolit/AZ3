@@ -31,8 +31,11 @@ is
    Default_Context : constant Context;
    function New_Context return Context;
 
-   --  Set a global configuration parameter
+   --  Set a global configuration parameter for default context
    procedure Set_Param_Value (ID : String; Value : String);
+
+   --  Set a global configuration parameter for all newly created contexts
+   procedure Set_Global_Param_Value (ID : String; Value : String);
 
    type Expr_Type is tagged private;
 
@@ -198,6 +201,10 @@ is
    type Optimize is tagged limited private;
 
    function Create (Context : Z3.Context := Default_Context) return Optimize;
+
+   --  ISSUE: Z3Prover/z3#4885
+   --  procedure Set_Timeout (Optimize : in out Z3.Optimize;
+   --                         Timeout  :        Natural := 1000);
 
    function Has_Context (Optimize : Z3.Optimize;
                          Context  : Z3.Context) return Boolean;
