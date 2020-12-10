@@ -621,27 +621,29 @@ is
 
    function Create (Context : Z3.Context := Default_Context) return Optimize
    is
+      Opt : constant z3_api_h.Z3_optimize := z3_api_h.Z3_mk_optimize (Context.Data);
    begin
-      return Optimize'(Data    => z3_api_h.Z3_mk_optimize (Context.Data),
+      --  ISSUE: Componolit/AZ3#9
+      z3_api_h.Z3_optimize_inc_ref (Context.Data, Opt);
+      return Optimize'(Data    => Opt,
                        Context => Context);
    end Create;
 
    ------------------------------------------------------------------------------------------------
 
-   --  ISSUE: Z3Prover/z3#4885
-   --  procedure Set_Timeout (Optimize : in out Z3.Optimize;
-   --                         Timeout  :        Natural := 1000)
-   --  is
-   --     Param_Name : constant chars_ptr := New_String ("timeout");
-   --     Params     : constant z3_api_h.Z3_params := z3_api_h.Z3_mk_params (Optimize.Context.Data);
-   --  begin
-   --     z3_api_h.Z3_params_set_uint
-   --        (Optimize.Context.Data,
-   --         Params,
-   --         z3_api_h.Z3_mk_string_symbol (Optimize.Context.Data, z3_api_h.Z3_string (Param_Name)),
-   --         Interfaces.C.unsigned (Timeout));
-   --     z3_api_h.Z3_optimize_set_params (Optimize.Context.Data, Optimize.Data, Params);
-   --  end Set_Timeout;
+   procedure Set_Timeout (Optimize : in out Z3.Optimize;
+                          Timeout  :        Natural := 1000)
+   is
+      Param_Name : constant chars_ptr := New_String ("timeout");
+      Params     : constant z3_api_h.Z3_params := z3_api_h.Z3_mk_params (Optimize.Context.Data);
+   begin
+      z3_api_h.Z3_params_set_uint
+         (Optimize.Context.Data,
+          Params,
+          z3_api_h.Z3_mk_string_symbol (Optimize.Context.Data, z3_api_h.Z3_string (Param_Name)),
+          Interfaces.C.unsigned (Timeout));
+      z3_api_h.Z3_optimize_set_params (Optimize.Context.Data, Optimize.Data, Params);
+   end Set_Timeout;
 
    ------------------------------------------------------------------------------------------------
 
