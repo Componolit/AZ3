@@ -376,6 +376,7 @@ package body AZ3_Tests is
       Optimize : Z3.Optimize := Z3.Create;
       Result   : Z3.Result;
    begin
+      Assert (Optimize.Has_Context (Z3.Default_Context), "Invalid context");
       Optimize.Set_Timeout (100);
       Optimize.Assert ((Z3.Int ("A") >= Z3.Int (LLU'(10)))
                        and (Z3.Int ("A") < Z3.Int (LLU'(50))));
@@ -387,38 +388,23 @@ package body AZ3_Tests is
       Assert (Result = Z3.Result_True, "Optimize not sat");
       Assert (Z3.Int_Type (Optimize.Lower (Z3.Int ("A"))) = Z3.Int (LLU'(10)), "Invalid lower");
       Assert (Z3.Int_Type (Optimize.Upper (Z3.Int ("B"))) = Z3.Int (LLU'(42)), "Invalid upper");
-      Optimize.Assert (Z3.Int ("C") < Z3.Int (LLU'(100)));
-      Optimize.Minimize (Z3.Int ("C"));
+      Optimize.Assert (Z3.Int ("C") > Z3.Int (LLU'(100)));
+      Optimize.Maximize (Z3.Int ("C"));
       Optimize.Check (Result);
       Assert (Result = Z3.Result_True, "Optimize not sat ");
       Assert (Z3.Kind (Optimize.Lower (Z3.Int ("C"))) /= Z3.Kind_Constant, "Invalid constant result");
+      Optimize.Assert (Z3.Int ("D") < Z3.Int (LLU'(100)));
+      Optimize.Minimize (Z3.Int ("D"));
+      Optimize.Check (Result);
+      Assert (Result = Z3.Result_True, "Optimize not sat ");
+      Assert (Z3.Kind (Optimize.Upper (Z3.Int ("D"))) /= Z3.Kind_Constant, "Invalid constant result");
+      Optimize.Assert (Z3.Int ("X") ** Z3.Int ("Y") >= Z3.Int ("X"));
+      Optimize.Check (Result);
+      Assert (Result = Z3.Result_Undef, "Optimize not undef");
       Optimize.Assert (Z3.Int ("X") < Z3.Int (LLU'(3)) and Z3.Int ("X") > Z3.Int (LLU'(100)));
       Optimize.Check (Result);
       Assert (Result = Z3.Result_False, "contradiction not found");
    end Test_Optimize;
-
-   ---------------------------------------------------------------------------
-
-   procedure Test_Set_Global_Param_Value (T : in out Test_Cases.Test_Case'Class)
-   is
-      pragma Unreferenced (T);
-      use type Z3.Bool_Type;
-      use type Z3.Int_Type;
-      use type Z3.Result;
-   begin
-      Z3.Set_Global_Param_Value ("timeout", "1");
-      declare
-         Ctx : constant Z3.Context := Z3.New_Context;
-         Optimize : Z3.Optimize := Z3.Create (Ctx);
-         Result   : Z3.Result;
-      begin
-         Assert (Optimize.Has_Context (Ctx), "Invalid context");
-         Optimize.Assert (Z3.Int ("C", Ctx) > Z3.Int (LLU'(100), Ctx));
-         Optimize.Maximize (Z3.Int ("C", Ctx));
-         Optimize.Check (Result);
-         Assert (Result = Z3.Result_Undef, "Optimize sat");
-      end;
-   end Test_Set_Global_Param_Value;
 
    ---------------------------------------------------------------------------
 
@@ -439,7 +425,6 @@ package body AZ3_Tests is
       Register_Routine (T, Test_Terms'Access, "Terms");
       Register_Routine (T, Test_Kind'Access, "Kind");
       Register_Routine (T, Test_Optimize'Access, "Optimize");
-      Register_Routine (T, Test_Set_Global_Param_Value'Access, "Set global configuration parameters");
    end Register_Tests;
 
    ---------------------------------------------------------------------------

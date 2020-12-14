@@ -13,6 +13,8 @@ jobs:
       fail-fast: false
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: true
     - name: Test
       run: |
-        docker run -v $PWD:/data -w /data componolit/ci:gnat-community-2020 /bin/sh -c "apt-get update && apt-get install -y libz3-4 libz3-dev gcovr && make test"
+        docker run -v $PWD:/data -w /data componolit/ci:gnat-community-2020 /bin/sh -c "apt-get update && apt-get install -y python gcovr && make test"

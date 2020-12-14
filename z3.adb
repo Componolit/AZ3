@@ -1,6 +1,8 @@
 with Interfaces.C.Extensions;
 with Interfaces.C.Strings;
 with Ada.Strings.Hash;
+with z3_optimization_h;
+with System;
 
 package body Z3
 is
@@ -18,19 +20,6 @@ is
       Free (C_ID);
       Free (C_Value);
    end Set_Param_Value;
-
-   ------------------------------------------------------------------------------------------------
-
-   procedure Set_Global_Param_Value (ID : String; Value : String)
-   is
-      C_ID    : chars_ptr := New_String (ID);
-      C_Value : chars_ptr := New_String (Value);
-   begin
-      z3_api_h.Z3_global_param_set (z3_api_h.Z3_string (C_ID),
-                                    z3_api_h.Z3_string (C_Value));
-      Free (C_ID);
-      Free (C_Value);
-   end Set_Global_Param_Value;
 
    ------------------------------------------------------------------------------------------------
 
@@ -488,12 +477,12 @@ is
    is
       Success : z3_api_h.Z3_bool;
       Result  : aliased Long_Long_Integer;
-      use type Interfaces.C.int;
+      use type Interfaces.C.Extensions.bool;
    begin
       Success := z3_api_h.Z3_get_numeral_int64 (c => Data.Context.Data,
                                                 v => Data.Data,
                                                 i => Result'Access);
-      if Success = 0 then
+      if not Success then
          raise Z3.Value_Error;
       end if;
       return Result;
@@ -505,12 +494,12 @@ is
    is
       Success : z3_api_h.Z3_bool;
       Result  : aliased Interfaces.C.Extensions.unsigned_long_long;
-      use type Interfaces.C.int;
+      use type Interfaces.C.Extensions.bool;
    begin
       Success := z3_api_h.Z3_get_numeral_uint64 (c => Data.Context.Data,
                                                  v => Data.Data,
                                                  u => Result'Access);
-      if Success = 0 then
+      if not Success then
          raise Z3.Value_Error;
       end if;
       return Long_Long_Unsigned (Result);
@@ -611,19 +600,18 @@ is
    overriding
    function "=" (Left, Right : Expr_Type) return Boolean
    is
-      use type z3_api_h.Z3_bool;
    begin
-      return z3_api_h.Z3_is_eq_ast (Left.Context.Data, Left.Data, Right.Data) = 1;
+      return Boolean (z3_api_h.Z3_is_eq_ast (Left.Context.Data, Left.Data, Right.Data));
    end "=";
 
    ------------------------------------------------------------------------------------------------
 
    function Create (Context : Z3.Context := Default_Context) return Optimize
    is
-      Opt : constant z3_api_h.Z3_optimize := z3_api_h.Z3_mk_optimize (Context.Data);
+      Opt : constant z3_api_h.Z3_optimize := z3_optimization_h.Z3_mk_optimize (Context.Data);
    begin
       --  ISSUE: Componolit/AZ3#9
-      z3_api_h.Z3_optimize_inc_ref (Context.Data, Opt);
+      z3_optimization_h.Z3_optimize_inc_ref (Context.Data, Opt);
       return Optimize'(Data       => Opt,
                        Context    => Context,
                        Objectives => Int_Maps.Empty_Map);
@@ -642,7 +630,7 @@ is
           Params,
           z3_api_h.Z3_mk_string_symbol (Optimize.Context.Data, z3_api_h.Z3_string (Param_Name)),
           Interfaces.C.unsigned (Timeout));
-      z3_api_h.Z3_optimize_set_params (Optimize.Context.Data, Optimize.Data, Params);
+      z3_optimization_h.Z3_optimize_set_params (Optimize.Context.Data, Optimize.Data, Params);
    end Set_Timeout;
 
    ------------------------------------------------------------------------------------------------
@@ -662,7 +650,7 @@ is
                      Fact     :        Bool_Type'Class)
    is
    begin
-      z3_api_h.Z3_optimize_assert (Optimize.Context.Data, Optimize.Data, Fact.Data);
+      z3_optimization_h.Z3_optimize_assert (Optimize.Context.Data, Optimize.Data, Fact.Data);
    end Assert;
 
    ------------------------------------------------------------------------------------------------
@@ -672,7 +660,7 @@ is
    is
       Ignore : Interfaces.C.unsigned;
    begin
-      Ignore := z3_api_h.Z3_optimize_minimize (Optimize.Context.Data, Optimize.Data, Term.Data);
+      Ignore := z3_optimization_h.Z3_optimize_minimize (Optimize.Context.Data, Optimize.Data, Term.Data);
       Optimize.Objectives.Insert (Term, Interfaces.C.unsigned (Optimize.Objectives.Length));
    end Minimize;
 
@@ -683,7 +671,7 @@ is
    is
       Ignore : Interfaces.C.unsigned;
    begin
-      Ignore := z3_api_h.Z3_optimize_maximize (Optimize.Context.Data, Optimize.Data, Term.Data);
+      Ignore := z3_optimization_h.Z3_optimize_maximize (Optimize.Context.Data, Optimize.Data, Term.Data);
       Optimize.Objectives.Insert (Term, Interfaces.C.unsigned (Optimize.Objectives.Length));
    end Maximize;
 
@@ -694,7 +682,8 @@ is
    is
       Check_Result : z3_api_h.Z3_lbool;
    begin
-      Check_Result := z3_api_h.Z3_optimize_check (Optimize.Context.Data, Optimize.Data);
+      Check_Result := z3_optimization_h.Z3_optimize_check
+         (Optimize.Context.Data, Optimize.Data, 0, System.Null_Address);
       case Check_Result is
          when z3_api_h.Z3_L_FALSE => Result := Result_False;
          when z3_api_h.Z3_L_TRUE  => Result := Result_True;
@@ -709,9 +698,9 @@ is
                    Objective : Z3.Int_Type'Class) return Z3.Int_Type'Class
    is
    begin
-      return Z3.Int_Type'(Data    => z3_api_h.Z3_optimize_get_lower (Optimize.Context.Data,
-                                                                     Optimize.Data,
-                                                                     Optimize.Objectives (Objective)),
+      return Z3.Int_Type'(Data    => z3_optimization_h.Z3_optimize_get_lower (Optimize.Context.Data,
+                                                                              Optimize.Data,
+                                                                              Optimize.Objectives (Objective)),
                           Context => Optimize.Context);
    end Lower;
 
@@ -721,9 +710,9 @@ is
                    Objective : Z3.Int_Type'Class) return Z3.Int_Type'Class
    is
    begin
-      return Z3.Int_Type'(Data    => z3_api_h.Z3_optimize_get_upper (Optimize.Context.Data,
-                                                                     Optimize.Data,
-                                                                     Optimize.Objectives (Objective)),
+      return Z3.Int_Type'(Data    => z3_optimization_h.Z3_optimize_get_upper (Optimize.Context.Data,
+                                                                              Optimize.Data,
+                                                                              Optimize.Objectives (Objective)),
                           Context => Optimize.Context);
    end Upper;
 

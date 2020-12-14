@@ -1,4 +1,5 @@
 with "switches";
+with "z3/libz3";
 
 project Z3 is
 
@@ -9,9 +10,5 @@ project Z3 is
    package Builder is
       for Default_Switches ("Ada") use Switches.Compiler_Switches;
    end Builder;
-
-   package Linker is
-      for Default_Switches ("Ada") use ("-lz3");
-   end Linker;
 
 end Z3;
