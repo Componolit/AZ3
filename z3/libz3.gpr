@@ -1,0 +1,9 @@
+project libz3 is
+
+   for Externally_Built use "True";
+   for Library_Dir use "z3/build";
+   for Library_Name use "z3";
+   for Source_Dirs use ();
+   for Library_Kind use "dynamic";
+
+end libz3;

@@ -38,9 +38,6 @@ package Z3 is  --  GCOV_EXCL_LINE
    --  Set a global configuration parameter for default context
    procedure Set_Param_Value (ID : String; Value : String);
 
-   --  Set a global configuration parameter for all newly created contexts
-   procedure Set_Global_Param_Value (ID : String; Value : String);
-
    type Expr_Type is tagged private;
 
    function Same_Context (Left, Right : Expr_Type'Class) return Boolean;
