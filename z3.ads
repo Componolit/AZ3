@@ -4,8 +4,8 @@ private with Ada.Containers;
 private with Ada.Containers.Indefinite_Hashed_Maps;
 private with Interfaces.C;
 
-package Z3
-is
+package Z3 is  --  GCOV_EXCL_LINE
+
    Internal_Error : exception;
    Value_Error    : exception;
 

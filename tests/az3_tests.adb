@@ -372,6 +372,7 @@ package body AZ3_Tests is
       use type Z3.Bool_Type;
       use type Z3.Int_Type;
       use type Z3.Result;
+      use type Z3.Expr_Kind;
       Optimize : Z3.Optimize := Z3.Create;
       Result   : Z3.Result;
    begin
@@ -386,10 +387,11 @@ package body AZ3_Tests is
       Assert (Result = Z3.Result_True, "Optimize not sat");
       Assert (Z3.Int_Type (Optimize.Lower (Z3.Int ("A"))) = Z3.Int (LLU'(10)), "Invalid lower");
       Assert (Z3.Int_Type (Optimize.Upper (Z3.Int ("B"))) = Z3.Int (LLU'(42)), "Invalid upper");
-      Optimize.Assert (Z3.Int ("C") > Z3.Int (LLU'(100)));
-      Optimize.Maximize (Z3.Int ("C"));
+      Optimize.Assert (Z3.Int ("C") < Z3.Int (LLU'(100)));
+      Optimize.Minimize (Z3.Int ("C"));
       Optimize.Check (Result);
-      Assert (Result = Z3.Result_Undef, "Optimize sat");
+      Assert (Result = Z3.Result_True, "Optimize not sat ");
+      Assert (Z3.Kind (Optimize.Lower (Z3.Int ("C"))) /= Z3.Kind_Constant, "Invalid constant result");
       Optimize.Assert (Z3.Int ("X") < Z3.Int (LLU'(3)) and Z3.Int ("X") > Z3.Int (LLU'(100)));
       Optimize.Check (Result);
       Assert (Result = Z3.Result_False, "contradiction not found");
