@@ -206,9 +206,6 @@ package Z3 is  --  GCOV_EXCL_LINE
    procedure Set_Timeout (Optimize : in out Z3.Optimize;
                           Timeout  :        Natural := 1000);
 
-   function Has_Context (Optimize : Z3.Optimize;
-                         Context  : Z3.Context) return Boolean;
-
    function Same_Context (Optimize : Z3.Optimize;
                           Term     : Z3.Expr_Type'Class) return Boolean;
 
@@ -232,6 +229,8 @@ package Z3 is  --  GCOV_EXCL_LINE
 
    function Upper (Optimize  : Z3.Optimize;
                    Objective : Z3.Int_Type'Class) return Z3.Int_Type'Class;
+
+   procedure Reset (Optimize : in out Z3.Optimize);
 
 private
 
