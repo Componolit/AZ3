@@ -376,8 +376,14 @@ package body AZ3_Tests is
       Optimize : Z3.Optimize := Z3.Create;
       Result   : Z3.Result;
    begin
-      Assert (Optimize.Has_Context (Z3.Default_Context), "Invalid context");
       Optimize.Set_Timeout (100);
+      Optimize.Assert (Z3.Int ("X") ** Z3.Int ("Y") >= Z3.Int ("X"));
+      Optimize.Check (Result);
+      Assert (Result = Z3.Result_Undef, "Optimize not undef");
+      Optimize.Assert (Z3.Int ("X") < Z3.Int (LLU'(3)) and Z3.Int ("X") > Z3.Int (LLU'(100)));
+      Optimize.Check (Result);
+      Assert (Result = Z3.Result_False, "contradiction not found");
+      Optimize.Reset;
       Optimize.Assert ((Z3.Int ("A") >= Z3.Int (LLU'(10)))
                        and (Z3.Int ("A") < Z3.Int (LLU'(50))));
       Optimize.Assert ((Z3.Int ("B") >= Z3.Int (LLU'(20)))
@@ -398,12 +404,6 @@ package body AZ3_Tests is
       Optimize.Check (Result);
       Assert (Result = Z3.Result_True, "Optimize not sat ");
       Assert (Z3.Kind (Optimize.Upper (Z3.Int ("D"))) /= Z3.Kind_Constant, "Invalid constant result");
-      Optimize.Assert (Z3.Int ("X") ** Z3.Int ("Y") >= Z3.Int ("X"));
-      Optimize.Check (Result);
-      Assert (Result = Z3.Result_Undef, "Optimize not undef");
-      Optimize.Assert (Z3.Int ("X") < Z3.Int (LLU'(3)) and Z3.Int ("X") > Z3.Int (LLU'(100)));
-      Optimize.Check (Result);
-      Assert (Result = Z3.Result_False, "contradiction not found");
    end Test_Optimize;
 
    ---------------------------------------------------------------------------

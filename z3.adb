@@ -612,6 +612,7 @@ is
    begin
       --  ISSUE: Componolit/AZ3#9
       z3_optimization_h.Z3_optimize_inc_ref (Context.Data, Opt);
+      z3_optimization_h.Z3_optimize_push (Context.Data, Opt);
       return Optimize'(Data       => Opt,
                        Context    => Context,
                        Objectives => Int_Maps.Empty_Map);
@@ -632,11 +633,6 @@ is
           Interfaces.C.unsigned (Timeout));
       z3_optimization_h.Z3_optimize_set_params (Optimize.Context.Data, Optimize.Data, Params);
    end Set_Timeout;
-
-   ------------------------------------------------------------------------------------------------
-
-   function Has_Context (Optimize : Z3.Optimize;
-                         Context  : Z3.Context) return Boolean is (Optimize.Context.Data = Context.Data);
 
    ------------------------------------------------------------------------------------------------
 
@@ -719,5 +715,14 @@ is
    ------------------------------------------------------------------------------------------------
 
    function Hash (Key : Z3.Int_Type'Class) return Ada.Containers.Hash_Type is (Ada.Strings.Hash (+Key));
+
+   ------------------------------------------------------------------------------------------------
+
+   procedure Reset (Optimize : in out Z3.Optimize)
+   is
+   begin
+      z3_optimization_h.Z3_optimize_pop (Optimize.Context.Data, Optimize.Data);
+      z3_optimization_h.Z3_optimize_push (Optimize.Context.Data, Optimize.Data);
+   end Reset;
 
 end Z3;
