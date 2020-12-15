@@ -399,11 +399,12 @@ package body AZ3_Tests is
       Optimize.Check (Result);
       Assert (Result = Z3.Result_True, "Optimize not sat ");
       Assert (Z3.Kind (Optimize.Lower (Z3.Int ("C"))) /= Z3.Kind_Constant, "Invalid constant result");
-      Optimize.Assert (Z3.Int ("D") < Z3.Int (LLU'(100)));
-      Optimize.Minimize (Z3.Int ("D"));
+      Optimize.Reset;
+      Optimize.Assert (Z3.Int ("C") < Z3.Int (LLU'(100)));
+      Optimize.Minimize (Z3.Int ("C"));
       Optimize.Check (Result);
       Assert (Result = Z3.Result_True, "Optimize not sat ");
-      Assert (Z3.Kind (Optimize.Upper (Z3.Int ("D"))) /= Z3.Kind_Constant, "Invalid constant result");
+      Assert (Z3.Kind (Optimize.Upper (Z3.Int ("C"))) /= Z3.Kind_Constant, "Invalid constant result");
    end Test_Optimize;
 
    ---------------------------------------------------------------------------

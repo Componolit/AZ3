@@ -723,6 +723,7 @@ is
    begin
       z3_optimization_h.Z3_optimize_pop (Optimize.Context.Data, Optimize.Data);
       z3_optimization_h.Z3_optimize_push (Optimize.Context.Data, Optimize.Data);
+      Optimize.Objectives := Int_Maps.Empty_Map;
    end Reset;
 
 end Z3;
