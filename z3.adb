@@ -654,10 +654,10 @@ is
    procedure Minimize (Optimize : in out Z3.Optimize;
                        Term     :        Z3.Int_Type'Class)
    is
-      Ignore : Interfaces.C.unsigned;
+      Index : Interfaces.C.unsigned;
    begin
-      Ignore := z3_optimization_h.Z3_optimize_minimize (Optimize.Context.Data, Optimize.Data, Term.Data);
-      Optimize.Objectives.Insert (Term, Interfaces.C.unsigned (Optimize.Objectives.Length));
+      Index := z3_optimization_h.Z3_optimize_minimize (Optimize.Context.Data, Optimize.Data, Term.Data);
+      Optimize.Objectives.Insert (Term, Index);
    end Minimize;
 
    ------------------------------------------------------------------------------------------------
@@ -665,10 +665,10 @@ is
    procedure Maximize (Optimize : in out Z3.Optimize;
                        Term     :        Z3.Int_Type'Class)
    is
-      Ignore : Interfaces.C.unsigned;
+      Index : Interfaces.C.unsigned;
    begin
-      Ignore := z3_optimization_h.Z3_optimize_maximize (Optimize.Context.Data, Optimize.Data, Term.Data);
-      Optimize.Objectives.Insert (Term, Interfaces.C.unsigned (Optimize.Objectives.Length));
+      Index := z3_optimization_h.Z3_optimize_maximize (Optimize.Context.Data, Optimize.Data, Term.Data);
+      Optimize.Objectives.Insert (Term, Index);
    end Maximize;
 
    ------------------------------------------------------------------------------------------------
