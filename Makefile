@@ -13,7 +13,7 @@ test: build obj/tests/tests
 	@gcovr . $(GCOVR_OPTS)
 
 z3/z3/build:
-	@cd z3/z3; python scripts/mk_make.py
+	@cd z3/z3 && python scripts/mk_make.py
 
 z3/z3/build/libz3.so: z3/z3/build
 	$(MAKE) -C z3/z3/build
