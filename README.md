@@ -23,10 +23,10 @@ end Use_Z3;
 
 # Background
 
-The thin-binding was extracted from `libz3-dev` (4.4.1-1~deb10u1) on Debian Buster using
+The thin-binding was extracted from the Z3 sources using
 
 ```
-$ gcc -fdump-ada-spec -c /usr/include/z3.h
+$ gcc -fdump-ada-spec -c z3/z3/src/api/z3.h
 ```
 
 GNAT version:
