@@ -1,4 +1,4 @@
-abstract project Switches
+abstract project Z3_Switches
 is
 
    Compiler_Switches :=
@@ -63,4 +63,4 @@ is
       ""
    );
 
-end Switches;
+end Z3_Switches;
