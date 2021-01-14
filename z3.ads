@@ -1,4 +1,5 @@
 with z3_api_h;
+with Ada.Iterator_Interfaces;
 
 private with Ada.Containers;
 private with Ada.Containers.Indefinite_Hashed_Maps;
@@ -38,7 +39,10 @@ package Z3 is  --  GCOV_EXCL_LINE
    --  Set a global configuration parameter for default context
    procedure Set_Param_Value (ID : String; Value : String);
 
-   type Expr_Type is tagged private;
+   type Expr_Type is tagged private with
+      Default_Iterator  => Iterate,
+      Iterator_Element  => Expr_Type'Class,
+      Constant_Indexing => Term_Value;
 
    function Same_Context (Left, Right : Expr_Type'Class) return Boolean;
    function Simplified (Value : Expr_Type) return Expr_Type;
@@ -51,6 +55,19 @@ package Z3 is  --  GCOV_EXCL_LINE
    function Term (Value : Expr_Type;
                   Index : Natural) return Expr_Type'Class;
    function Kind (Value : Expr_Type) return Expr_Kind;
+
+   type Cursor is private;
+
+   function Has_Term (Pos : Cursor) return Boolean;
+
+   package Expr_Iterators is new Ada.Iterator_Interfaces (Cursor, Has_Term);
+
+   function Iterate (Expr : Expr_Type) return Expr_Iterators.Forward_Iterator'Class;
+
+   function Term (Pos : Cursor) return Expr_Type'Class;
+
+   function Term_Value (Expr : Expr_Type;
+                        Pos  : Cursor) return Expr_Type'Class;
 
    --  Boolean expressions
    type Bool_Type is new Expr_Type with private;
@@ -310,5 +327,21 @@ private
    function "&" (Left, Right : Bool_Type) return Bool_Array is (Bool_Array'(Left, Right));
    overriding
    function "&" (Left, Right : Int_Type) return Int_Array is (Int_Array'(Left, Right));
+
+   type Cursor is record
+      Expr  : Expr_Type;
+      Index : Natural;
+   end record;
+
+   type Expr_Iterator is new Expr_Iterators.Forward_Iterator with record
+      Expr : Expr_Type;
+   end record;
+
+   overriding
+   function First (Object : Expr_Iterator) return Cursor;
+
+   overriding
+   function Next (Object : Expr_Iterator;
+                  Pos    : Cursor) return Cursor;
 
 end Z3;

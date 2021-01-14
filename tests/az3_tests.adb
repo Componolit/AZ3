@@ -287,19 +287,22 @@ package body AZ3_Tests is
       use type Z3.Bool_Type;
       use type Z3.Int_Array;
       use type Z3.Bool_Array;
-      I_Arg_1 : constant Z3.Int_Type  := Z3.Int ("A");
-      I_Arg_2 : constant Z3.Int_Type  := Z3.Int ("B");
-      I_Arg_3 : constant Z3.Int_Type  := Z3.Int (LLU'(2));
-      B_Arg_1 : constant Z3.Bool_Type := Z3.Bool ("A");
-      B_Arg_2 : constant Z3.Bool_Type := Z3.Bool ("B");
-      B_Arg_3 : constant Z3.Bool_Type := Z3.Bool (True);
-      I_0     : constant Z3.Int_Type  := I_Arg_1;
-      I_2     : constant Z3.Int_Type  := I_Arg_1 + I_Arg_2;
-      I_3     : constant Z3.Int_Type  := Z3.Add (I_Arg_1 & I_Arg_2 & I_Arg_3);
-      B_0     : constant Z3.Bool_Type := B_Arg_1;
-      B_1     : constant Z3.Bool_Type := not B_Arg_1;
-      B_2     : constant Z3.Bool_Type := I_Arg_1 < I_Arg_2;
-      B_3     : constant Z3.Bool_Type := Z3.Conjunction (B_Arg_1 & B_Arg_2 & B_Arg_3);
+      I_Arg_1 : constant Z3.Int_Type   := Z3.Int ("A");
+      I_Arg_2 : constant Z3.Int_Type   := Z3.Int ("B");
+      I_Arg_3 : constant Z3.Int_Type   := Z3.Int (LLU'(2));
+      B_Arg_1 : constant Z3.Bool_Type  := Z3.Bool ("A");
+      B_Arg_2 : constant Z3.Bool_Type  := Z3.Bool ("B");
+      B_Arg_3 : constant Z3.Bool_Type  := Z3.Bool (True);
+      I_0     : constant Z3.Int_Type   := I_Arg_1;
+      I_2     : constant Z3.Int_Type   := I_Arg_1 + I_Arg_2;
+      I_3     : constant Z3.Int_Type   := Z3.Add (I_Arg_1 & I_Arg_2 & I_Arg_3);
+      B_0     : constant Z3.Bool_Type  := B_Arg_1;
+      B_1     : constant Z3.Bool_Type  := not B_Arg_1;
+      B_2     : constant Z3.Bool_Type  := I_Arg_1 < I_Arg_2;
+      B_3     : constant Z3.Bool_Type  := Z3.Conjunction (B_Arg_1 & B_Arg_2 & B_Arg_3);
+      I_Args  : constant Z3.Int_Array  := I_Arg_1 & I_Arg_2 & I_Arg_3;
+      B_Args  : constant Z3.Bool_Array := B_Arg_1 & B_Arg_2 & B_Arg_3;
+      Index   : Natural;
    begin
       Assert (Z3.Terms (Z3.Int (LLU'(0))) = 0, "invalid argument count 0");
       Assert (Z3.Terms (Z3.Bool (True)) = 0, "invalid argument count True");
@@ -321,6 +324,24 @@ package body AZ3_Tests is
       Assert (Z3.Bool (Z3.Term (B_3, 0)) = B_Arg_1, "B_3 (0) /= B_Arg_1");
       Assert (Z3.Bool (Z3.Term (B_3, 1)) = B_Arg_2, "B_3 (1) /= B_Arg_2");
       Assert (Z3.Bool (Z3.Term (B_3, 2)) = B_Arg_3, "B_3 (2) /= B_Arg_3");
+      for T of I_0 loop
+         Assert (False, "Atom should not have subterms");  --  GCOV_EXCL_LINE
+      end loop;
+      for T of B_0 loop
+         Assert (False, "Atom should not have subterms");  --  GCOV_EXCL_LINE
+      end loop;
+      Index := I_Args'First;
+      for T of I_3 loop
+         Assert (Z3.Int (T) = I_Args (Index), "Invalid term at index " & Index'Img);
+         Index := Index + 1;
+      end loop;
+      Assert (Index > I_Args'Last, "Failed to iterate over all terms");
+      Index := B_Args'First;
+      for T of B_3 loop
+         Assert (Z3.Bool (T) = B_Args (Index), "Invalid term at index " & Index'Img);
+         Index := Index + 1;
+      end loop;
+      Assert (Index > B_Args'Last, "Failed to iterate over all terms");
       Assert_Exception (Term_Out_Of_Bounds'Access, "Out of bounds term access not detected");
    end Test_Terms;
 

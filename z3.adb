@@ -726,4 +726,33 @@ is
       Optimize.Objectives := Int_Maps.Empty_Map;
    end Reset;
 
+   ------------------------------------------------------------------------------------------------
+
+   function Term (Pos : Cursor) return Expr_Type'Class is (Pos.Expr.Term (Pos.Index));
+
+   ------------------------------------------------------------------------------------------------
+
+   function Has_Term (Pos : Cursor) return Boolean is (Pos.Index < Pos.Expr.Terms);
+
+   ------------------------------------------------------------------------------------------------
+
+   function Term_Value (Expr : Expr_Type;
+                        Pos  : Cursor) return Expr_Type'Class is (Term (Pos));
+
+   ------------------------------------------------------------------------------------------------
+
+   function Iterate (Expr : Expr_Type) return Expr_Iterators.Forward_Iterator'Class is
+      (Expr_Iterator'(Expr_Iterators.Forward_Iterator with Expr => Expr));
+
+   ------------------------------------------------------------------------------------------------
+
+   overriding
+   function First (Object : Expr_Iterator) return Cursor is (Cursor'(Expr => Object.Expr, Index => 0));
+
+   ------------------------------------------------------------------------------------------------
+
+   overriding
+   function Next (Object : Expr_Iterator;
+                  Pos    : Cursor) return Cursor is (Cursor'(Expr => Pos.Expr, Index => Pos.Index + 1));
+
 end Z3;
