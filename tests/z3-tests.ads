@@ -1,7 +1,7 @@
 with AUnit; use AUnit;
 with AUnit.Test_Cases; use AUnit.Test_Cases;
 
-package AZ3_Tests is
+package Z3.Tests is
 
    type Test_Case is new Test_Cases.Test_Case with null record;
 
@@ -13,4 +13,4 @@ package AZ3_Tests is
    function Name (T : Test_Case) return Message_String;
    --  Provide name identifying the test case
 
-end AZ3_Tests;
+end Z3.Tests;
