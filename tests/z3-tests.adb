@@ -1,19 +1,18 @@
-with Z3;
 with AUnit.Assertions;
 
-package body AZ3_Tests is
+package body Z3.Tests is
 
    use AUnit.Assertions;
 
    subtype LLI is Long_Long_Integer;
-   subtype LLU is Z3.Long_Long_Unsigned;
+   subtype LLU is Long_Long_Unsigned;
 
-   function Simp (V : Z3.Bool_Type) return Z3.Bool_Type is
+   function Simp (V : Bool_Type) return Bool_Type is
    begin
       return V.Simplified;
    end Simp;
 
-   function Simp (V : Z3.Int_Type) return Z3.Int_Type is
+   function Simp (V : Int_Type) return Int_Type is
    begin
       return V.Simplified;
    end Simp;
@@ -24,7 +23,7 @@ package body AZ3_Tests is
    is
       pragma Unreferenced  (T);
    begin
-      Z3.Set_Param_Value ("unsat_core", "true");
+      Set_Param_Value ("unsat_core", "true");
       --  We cannot really test anything here - there is not API to read
       --  back parameters or to check a result
    end Test_Set_Param_Value;
@@ -34,7 +33,6 @@ package body AZ3_Tests is
    procedure Test_Booleans (T : in out Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced  (T);
-      use Z3;
       X : constant Bool_Type := Bool ("X");
    begin
       Assert (Simp (Bool (True) = Bool (False)) = Bool (False), "Contradiction not false");
@@ -62,7 +60,6 @@ package body AZ3_Tests is
    procedure Test_Integer (T : in out Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced  (T);
-      use Z3;
    begin
       Assert (Simp (Int (LLI'(1)) = Int (LLI'(1))) = Bool (True), "1 != 1");
       Assert (Simp (Int (LLI'(1)) = Int (LLI'(2))) = Bool (False), "1 == 2");
@@ -103,7 +100,6 @@ package body AZ3_Tests is
    procedure Test_Unsigned (T : in out Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Z3;
    begin
       Assert (Simp (Int (LLU'(1)) = Int (LLU'(1))) = Bool (True), "1 != 1");
       Assert (Simp (Int (LLU'(1)) = Int (LLU'(2))) = Bool (False), "1 == 2");
@@ -144,7 +140,6 @@ package body AZ3_Tests is
    procedure Test_Solver (T : in out Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced  (T);
-      use Z3;
       S : Solver := Create;
    begin
       S.Assert (Bool (False));
@@ -173,7 +168,6 @@ package body AZ3_Tests is
 
    procedure Incompatible_Context
    is
-      use Z3;
       C1     : constant Context := New_Context;
       Result : constant Bool_Type := Bool (True) = Bool (False, C1);
    begin
@@ -193,7 +187,6 @@ package body AZ3_Tests is
    procedure Test_String_Representation (T : in out Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced  (T);
-      use Z3;
    begin
       Assert (+Int (LLI'(234)) = "234", "invalid boolean string representation");
       Assert (+(Int (LLI'(7)) + Int (LLI'(15))) = "(+ 7 15)", "invalid integer string representation");
@@ -205,7 +198,6 @@ package body AZ3_Tests is
 
    procedure Value_Of_Addition
    is
-      use Z3;
       I      : constant Int_Type := Int (LLI'(-1000)) + Int (LLI'(5000));
       Unused : constant Long_Long_Integer := I.Value;
    begin
@@ -214,7 +206,6 @@ package body AZ3_Tests is
 
    procedure Negative_Unsigned
    is
-      use Z3;
       Unused : constant LLU := Int (LLI'(-1)).Value;
    begin
       null; --  GCOV_EXCL_LINE
@@ -223,7 +214,6 @@ package body AZ3_Tests is
    procedure Test_Value (T : in out Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced  (T);
-      use Z3;
    begin
       Assert (Int (LLI'(234)).Value = LLI'(234), "invalid integer value");
       Assert (Int (LLI'(-1234567)).Value = LLI'(-1234567), "invalid negative integer value");
@@ -243,7 +233,6 @@ package body AZ3_Tests is
    procedure Test_Substitute (T : in out Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Z3;
       Expr     : Bool_Type := Int (LLI'(1)) < Int ("A");
       Expected : Bool_Type := Int (LLI'(1)) < Int ("B");
       Result   : Bool_Type := Bool (Substitute (Expr, Int ("A"), Int ("B")));
@@ -274,56 +263,51 @@ package body AZ3_Tests is
 
    procedure Term_Out_Of_Bounds
    is
-      use type Z3.Int_Type;
-      Unused : Z3.Int_Type := Z3.Int ("A") + Z3.Int ("B");
+      Unused : Int_Type := Int ("A") + Int ("B");
    begin
-      Unused := Z3.Int (Z3.Term (Unused, 2));
+      Unused := Int (Term (Unused, 2));
    end Term_Out_Of_Bounds;
 
    procedure Test_Terms (T : in out Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use type Z3.Int_Type;
-      use type Z3.Bool_Type;
-      use type Z3.Int_Array;
-      use type Z3.Bool_Array;
-      I_Arg_1 : constant Z3.Int_Type   := Z3.Int ("A");
-      I_Arg_2 : constant Z3.Int_Type   := Z3.Int ("B");
-      I_Arg_3 : constant Z3.Int_Type   := Z3.Int (LLU'(2));
-      B_Arg_1 : constant Z3.Bool_Type  := Z3.Bool ("A");
-      B_Arg_2 : constant Z3.Bool_Type  := Z3.Bool ("B");
-      B_Arg_3 : constant Z3.Bool_Type  := Z3.Bool (True);
-      I_0     : constant Z3.Int_Type   := I_Arg_1;
-      I_2     : constant Z3.Int_Type   := I_Arg_1 + I_Arg_2;
-      I_3     : constant Z3.Int_Type   := Z3.Add (I_Arg_1 & I_Arg_2 & I_Arg_3);
-      B_0     : constant Z3.Bool_Type  := B_Arg_1;
-      B_1     : constant Z3.Bool_Type  := not B_Arg_1;
-      B_2     : constant Z3.Bool_Type  := I_Arg_1 < I_Arg_2;
-      B_3     : constant Z3.Bool_Type  := Z3.Conjunction (B_Arg_1 & B_Arg_2 & B_Arg_3);
-      I_Args  : constant Z3.Int_Array  := I_Arg_1 & I_Arg_2 & I_Arg_3;
-      B_Args  : constant Z3.Bool_Array := B_Arg_1 & B_Arg_2 & B_Arg_3;
+      I_Arg_1 : constant Int_Type   := Int ("A");
+      I_Arg_2 : constant Int_Type   := Int ("B");
+      I_Arg_3 : constant Int_Type   := Int (LLU'(2));
+      B_Arg_1 : constant Bool_Type  := Bool ("A");
+      B_Arg_2 : constant Bool_Type  := Bool ("B");
+      B_Arg_3 : constant Bool_Type  := Bool (True);
+      I_0     : constant Int_Type   := I_Arg_1;
+      I_2     : constant Int_Type   := I_Arg_1 + I_Arg_2;
+      I_3     : constant Int_Type   := Add (I_Arg_1 & I_Arg_2 & I_Arg_3);
+      B_0     : constant Bool_Type  := B_Arg_1;
+      B_1     : constant Bool_Type  := not B_Arg_1;
+      B_2     : constant Bool_Type  := I_Arg_1 < I_Arg_2;
+      B_3     : constant Bool_Type  := Conjunction (B_Arg_1 & B_Arg_2 & B_Arg_3);
+      I_Args  : constant Int_Array  := I_Arg_1 & I_Arg_2 & I_Arg_3;
+      B_Args  : constant Bool_Array := B_Arg_1 & B_Arg_2 & B_Arg_3;
       Index   : Natural;
    begin
-      Assert (Z3.Terms (Z3.Int (LLU'(0))) = 0, "invalid argument count 0");
-      Assert (Z3.Terms (Z3.Bool (True)) = 0, "invalid argument count True");
-      Assert (Z3.Terms (I_0) = 0, "invalid argument count I_0");
-      Assert (Z3.Terms (I_2) = 2, "invalid argument count I_2");
-      Assert (Z3.Terms (I_3) = 3, "invalid argument count I_3");
-      Assert (Z3.Terms (B_0) = 0, "invalid argument count B_0");
-      Assert (Z3.Terms (B_1) = 1, "invalid argument count B_1");
-      Assert (Z3.Terms (B_2) = 2, "invalid argument count B_2");
-      Assert (Z3.Terms (B_3) = 3, "invalid argument count B_3");
-      Assert (Z3.Int (Z3.Term (I_2, 0)) = I_Arg_1, "I_2 (0) /= I_Arg_1");
-      Assert (Z3.Int (Z3.Term (I_2, 1)) = I_Arg_2, "I_2 (1) /= I_Arg_2");
-      Assert (Z3.Int (Z3.Term (I_3, 0)) = I_Arg_1, "I_3 (0) /= I_Arg_1");
-      Assert (Z3.Int (Z3.Term (I_3, 1)) = I_Arg_2, "I_3 (1) /= I_Arg_2");
-      Assert (Z3.Int (Z3.Term (I_3, 2)) = I_Arg_3, "I_3 (2) /= I_Arg_3");
-      Assert (Z3.Bool (Z3.Term (B_1, 0)) = B_Arg_1, "B_1 (0) /= B_Arg_1");
-      Assert (Z3.Int (Z3.Term (B_2, 0)) = I_Arg_1, "B_2 (0) /= I_Arg_1");
-      Assert (Z3.Int (Z3.Term (B_2, 1)) = I_Arg_2, "B_2 (1) /= I_Arg_2");
-      Assert (Z3.Bool (Z3.Term (B_3, 0)) = B_Arg_1, "B_3 (0) /= B_Arg_1");
-      Assert (Z3.Bool (Z3.Term (B_3, 1)) = B_Arg_2, "B_3 (1) /= B_Arg_2");
-      Assert (Z3.Bool (Z3.Term (B_3, 2)) = B_Arg_3, "B_3 (2) /= B_Arg_3");
+      Assert (Terms (Int (LLU'(0))) = 0, "invalid argument count 0");
+      Assert (Terms (Bool (True)) = 0, "invalid argument count True");
+      Assert (Terms (I_0) = 0, "invalid argument count I_0");
+      Assert (Terms (I_2) = 2, "invalid argument count I_2");
+      Assert (Terms (I_3) = 3, "invalid argument count I_3");
+      Assert (Terms (B_0) = 0, "invalid argument count B_0");
+      Assert (Terms (B_1) = 1, "invalid argument count B_1");
+      Assert (Terms (B_2) = 2, "invalid argument count B_2");
+      Assert (Terms (B_3) = 3, "invalid argument count B_3");
+      Assert (Int (Term (I_2, 0)) = I_Arg_1, "I_2 (0) /= I_Arg_1");
+      Assert (Int (Term (I_2, 1)) = I_Arg_2, "I_2 (1) /= I_Arg_2");
+      Assert (Int (Term (I_3, 0)) = I_Arg_1, "I_3 (0) /= I_Arg_1");
+      Assert (Int (Term (I_3, 1)) = I_Arg_2, "I_3 (1) /= I_Arg_2");
+      Assert (Int (Term (I_3, 2)) = I_Arg_3, "I_3 (2) /= I_Arg_3");
+      Assert (Bool (Term (B_1, 0)) = B_Arg_1, "B_1 (0) /= B_Arg_1");
+      Assert (Int (Term (B_2, 0)) = I_Arg_1, "B_2 (0) /= I_Arg_1");
+      Assert (Int (Term (B_2, 1)) = I_Arg_2, "B_2 (1) /= I_Arg_2");
+      Assert (Bool (Term (B_3, 0)) = B_Arg_1, "B_3 (0) /= B_Arg_1");
+      Assert (Bool (Term (B_3, 1)) = B_Arg_2, "B_3 (1) /= B_Arg_2");
+      Assert (Bool (Term (B_3, 2)) = B_Arg_3, "B_3 (2) /= B_Arg_3");
       for T of I_0 loop
          Assert (False, "Atom should not have subterms");  --  GCOV_EXCL_LINE
       end loop;
@@ -332,13 +316,13 @@ package body AZ3_Tests is
       end loop;
       Index := I_Args'First;
       for T of I_3 loop
-         Assert (Z3.Int (T) = I_Args (Index), "Invalid term at index " & Index'Img);
+         Assert (Int (T) = I_Args (Index), "Invalid term at index " & Index'Img);
          Index := Index + 1;
       end loop;
       Assert (Index > I_Args'Last, "Failed to iterate over all terms");
       Index := B_Args'First;
       for T of B_3 loop
-         Assert (Z3.Bool (T) = B_Args (Index), "Invalid term at index " & Index'Img);
+         Assert (Bool (T) = B_Args (Index), "Invalid term at index " & Index'Img);
          Index := Index + 1;
       end loop;
       Assert (Index > B_Args'Last, "Failed to iterate over all terms");
@@ -350,39 +334,34 @@ package body AZ3_Tests is
    procedure Test_Kind (T : in out Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use type Z3.Int_Type;
-      use type Z3.Bool_Type;
-      use type Z3.Int_Array;
-      use type Z3.Bool_Array;
-      use type Z3.Expr_Kind;
    begin
-      Assert (Z3.Kind (Z3.Bool (True)) = Z3.Kind_Constant, "invalid bool constant");
-      Assert (Z3.Kind (Z3.Int (LLU'(1))) = Z3.Kind_Constant, "invalid int constant");
-      Assert (Z3.Kind (Z3.Bool ("A")) = Z3.Kind_Var, "invalid bool var " & Z3.Kind (Z3.Bool ("A"))'Img);
-      Assert (Z3.Kind (Z3.Int ("A")) = Z3.Kind_Var, "invalid int var " & Z3.Kind (Z3.Int ("A"))'Img);
-      Assert (Z3.Kind (Z3.Int ("A") = Z3.Int ("B")) = Z3.Kind_Equal, "invalid int equal");
-      Assert (Z3.Kind (Z3.Bool ("A") = Z3.Bool ("B")) = Z3.Kind_Equal, "invalid bool equal");
-      Assert (Z3.Kind (Z3.Int ("A") >= Z3.Int ("B")) = Z3.Kind_Greater_Equal, "invalid greater equal");
-      Assert (Z3.Kind (Z3.Int ("A") > Z3.Int ("B")) = Z3.Kind_Greater_Than, "invalid greater than");
-      Assert (Z3.Kind (Z3.Int ("A") <= Z3.Int ("B")) = Z3.Kind_Less_Equal, "invalid less equal");
-      Assert (Z3.Kind (Z3.Int ("A") < Z3.Int ("B")) = Z3.Kind_Less_Than, "invalid less than");
-      Assert (Z3.Kind (Z3.Bool ("A") and Z3.Bool ("B")) = Z3.Kind_And, "invalid and");
-      Assert (Z3.Kind (Z3.Conjunction (Z3.Bool ("A") & Z3.Bool ("B") & Z3.Bool ("C"))) = Z3.Kind_And,
+      Assert (Kind (Bool (True)) = Kind_Constant, "invalid bool constant");
+      Assert (Kind (Int (LLU'(1))) = Kind_Constant, "invalid int constant");
+      Assert (Kind (Bool ("A")) = Kind_Var, "invalid bool var " & Kind (Bool ("A"))'Img);
+      Assert (Kind (Int ("A")) = Kind_Var, "invalid int var " & Kind (Int ("A"))'Img);
+      Assert (Kind (Int ("A") = Int ("B")) = Kind_Equal, "invalid int equal");
+      Assert (Kind (Bool ("A") = Bool ("B")) = Kind_Equal, "invalid bool equal");
+      Assert (Kind (Int ("A") >= Int ("B")) = Kind_Greater_Equal, "invalid greater equal");
+      Assert (Kind (Int ("A") > Int ("B")) = Kind_Greater_Than, "invalid greater than");
+      Assert (Kind (Int ("A") <= Int ("B")) = Kind_Less_Equal, "invalid less equal");
+      Assert (Kind (Int ("A") < Int ("B")) = Kind_Less_Than, "invalid less than");
+      Assert (Kind (Bool ("A") and Bool ("B")) = Kind_And, "invalid and");
+      Assert (Kind (Conjunction (Bool ("A") & Bool ("B") & Bool ("C"))) = Kind_And,
               "invalid conjunction");
-      Assert (Z3.Kind (Z3.Bool ("A") or Z3.Bool ("B")) = Z3.Kind_Or, "invalid or");
-      Assert (Z3.Kind (Z3.Disjunction (Z3.Bool ("A") & Z3.Bool ("B") & Z3.Bool ("C"))) = Z3.Kind_Or,
+      Assert (Kind (Bool ("A") or Bool ("B")) = Kind_Or, "invalid or");
+      Assert (Kind (Disjunction (Bool ("A") & Bool ("B") & Bool ("C"))) = Kind_Or,
               "invalid disjunction");
-      Assert (Z3.Kind (not Z3.Bool ("A")) = Z3.Kind_Not, "invalid not");
-      Assert (Z3.Kind (Z3.Int ("A") + Z3.Int ("B")) = Z3.Kind_Add, "invalid add");
-      Assert (Z3.Kind (Z3.Add (Z3.Int ("A") & Z3.Int ("B") & Z3.Int ("C"))) = Z3.Kind_Add,
+      Assert (Kind (not Bool ("A")) = Kind_Not, "invalid not");
+      Assert (Kind (Int ("A") + Int ("B")) = Kind_Add, "invalid add");
+      Assert (Kind (Add (Int ("A") & Int ("B") & Int ("C"))) = Kind_Add,
               "invalid add (multiple)");
-      Assert (Z3.Kind (Z3.Int ("A") * Z3.Int ("B")) = Z3.Kind_Mul, "invalid mul");
-      Assert (Z3.Kind (Z3.Mul (Z3.Int ("A") & Z3.Int ("B") & Z3.Int ("C"))) = Z3.Kind_Mul,
+      Assert (Kind (Int ("A") * Int ("B")) = Kind_Mul, "invalid mul");
+      Assert (Kind (Mul (Int ("A") & Int ("B") & Int ("C"))) = Kind_Mul,
               "invalid mul (multiple)");
-      Assert (Z3.Kind (Z3.Int ("A") - Z3.Int ("B")) = Z3.Kind_Sub, "invalid sub");
-      Assert (Z3.Kind (Z3.Int ("A") / Z3.Int ("B")) = Z3.Kind_Div, "invalid div");
-      Assert (Z3.Kind (Z3.Int ("A") mod Z3.Int ("B")) = Z3.Kind_Mod, "invalid mod");
-      Assert (Z3.Kind (Z3.Int ("A") ** Z3.Int ("B")) = Z3.Kind_Power, "invalid power");
+      Assert (Kind (Int ("A") - Int ("B")) = Kind_Sub, "invalid sub");
+      Assert (Kind (Int ("A") / Int ("B")) = Kind_Div, "invalid div");
+      Assert (Kind (Int ("A") mod Int ("B")) = Kind_Mod, "invalid mod");
+      Assert (Kind (Int ("A") ** Int ("B")) = Kind_Power, "invalid power");
    end Test_Kind;
 
    ---------------------------------------------------------------------------
@@ -390,75 +369,70 @@ package body AZ3_Tests is
    procedure Test_Optimize (T : in out Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use type Z3.Bool_Type;
-      use type Z3.Int_Type;
-      use type Z3.Result;
-      use type Z3.Expr_Kind;
-      Optimize : Z3.Optimize := Z3.Create;
+      Optimize : Z3.Optimize := Create;
       Result   : Z3.Result;
    begin
       Optimize.Set_Timeout (100);
-      Optimize.Assert (Z3.Int ("X") ** Z3.Int ("Y") >= Z3.Int ("X"));
+      Optimize.Assert (Int ("X") ** Int ("Y") >= Int ("X"));
       Optimize.Check (Result);
-      Assert (Result = Z3.Result_Undef, "Optimize not undef");
-      Optimize.Assert (Z3.Int ("X") < Z3.Int (LLU'(3)) and Z3.Int ("X") > Z3.Int (LLU'(100)));
+      Assert (Result = Result_Undef, "Optimize not undef");
+      Optimize.Assert (Int ("X") < Int (LLU'(3)) and Int ("X") > Int (LLU'(100)));
       Optimize.Check (Result);
-      Assert (Result = Z3.Result_False, "contradiction not found");
+      Assert (Result = Result_False, "contradiction not found");
       Optimize.Reset;
-      Optimize.Assert ((Z3.Int ("A") >= Z3.Int (LLU'(10)))
-                       and (Z3.Int ("A") < Z3.Int (LLU'(50))));
-      Optimize.Assert ((Z3.Int ("B") >= Z3.Int (LLU'(20)))
-                       and (Z3.Int ("B") <= Z3.Int (LLU'(42))));
-      Optimize.Minimize (Z3.Int ("A"));
-      Optimize.Maximize (Z3.Int ("B"));
+      Optimize.Assert ((Int ("A") >= Int (LLU'(10)))
+                       and (Int ("A") < Int (LLU'(50))));
+      Optimize.Assert ((Int ("B") >= Int (LLU'(20)))
+                       and (Int ("B") <= Int (LLU'(42))));
+      Optimize.Minimize (Int ("A"));
+      Optimize.Maximize (Int ("B"));
       Optimize.Check (Result);
-      Assert (Result = Z3.Result_True, "Optimize not sat");
-      Assert (Z3.Int_Type (Optimize.Lower (Z3.Int ("A"))) = Z3.Int (LLU'(10)), "Invalid lower");
-      Assert (Z3.Int_Type (Optimize.Upper (Z3.Int ("B"))) = Z3.Int (LLU'(42)), "Invalid upper");
-      Optimize.Assert (Z3.Int ("C") > Z3.Int (LLU'(100)));
-      Optimize.Maximize (Z3.Int ("C"));
+      Assert (Result = Result_True, "Optimize not sat");
+      Assert (Int_Type (Optimize.Lower (Int ("A"))) = Int (LLU'(10)), "Invalid lower");
+      Assert (Int_Type (Optimize.Upper (Int ("B"))) = Int (LLU'(42)), "Invalid upper");
+      Optimize.Assert (Int ("C") > Int (LLU'(100)));
+      Optimize.Maximize (Int ("C"));
       Optimize.Check (Result);
-      Assert (Result = Z3.Result_True, "Optimize not sat ");
-      Assert (Z3.Kind (Optimize.Lower (Z3.Int ("C"))) /= Z3.Kind_Constant, "Invalid constant result");
+      Assert (Result = Result_True, "Optimize not sat ");
+      Assert (Kind (Optimize.Lower (Int ("C"))) /= Kind_Constant, "Invalid constant result");
       Optimize.Reset;
-      Optimize.Assert (Z3.Int ("C") < Z3.Int (LLU'(100)));
-      Optimize.Minimize (Z3.Int ("C"));
+      Optimize.Assert (Int ("C") < Int (LLU'(100)));
+      Optimize.Minimize (Int ("C"));
       Optimize.Check (Result);
-      Assert (Result = Z3.Result_True, "Optimize not sat ");
-      Assert (Z3.Kind (Optimize.Upper (Z3.Int ("C"))) /= Z3.Kind_Constant, "Invalid constant result");
+      Assert (Result = Result_True, "Optimize not sat ");
+      Assert (Kind (Optimize.Upper (Int ("C"))) /= Kind_Constant, "Invalid constant result");
    end Test_Optimize;
 
    ---------------------------------------------------------------------------
 
    procedure Invalid_Bool
    is
-      B      : constant Z3.Expr_Type'Class := Z3.Bool ("B");
-      Ignore : Z3.Int_Type;
+      B      : constant Expr_Type'Class := Bool ("B");
+      Ignore : Int_Type;
    begin
-      Ignore := Z3.Int (B);
+      Ignore := Int (B);
    end Invalid_Bool;
 
    procedure Invalid_Int
    is
-      I      : constant Z3.Expr_Type'Class := Z3.Int ("I");
-      Ignore : Z3.Bool_Type;
+      I      : constant Expr_Type'Class := Int ("I");
+      Ignore : Bool_Type;
    begin
-      Ignore := Z3.Bool (I);
+      Ignore := Bool (I);
    end Invalid_Int;
 
    procedure Test_Sort (T : in out Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use type Z3.Expr_Sort;
-      B : constant Z3.Expr_Type'Class := Z3.Bool ("B");
-      I : constant Z3.Expr_Type'Class := Z3.Int ("I");
+      B : constant Expr_Type'Class := Bool ("B");
+      I : constant Expr_Type'Class := Int ("I");
    begin
-      Assert (Z3.Int ("A").Sort = Z3.Sort_Int, "Invalid int sort");
-      Assert (Z3.Int (LLU'(1)).Sort = Z3.Sort_Int, "Invalid int sort");
-      Assert (Z3.Bool ("A").Sort = Z3.Sort_Bool, "Invalid bool sort");
-      Assert (Z3.Bool (True).Sort = Z3.Sort_Bool, "Invalid bool sort");
-      Assert (B.Sort = Z3.Sort_Bool, "Invalid bool sort");
-      Assert (I.Sort = Z3.Sort_Int, "Invalid int sort");
+      Assert (Int ("A").Sort = Sort_Int, "Invalid int sort");
+      Assert (Int (LLU'(1)).Sort = Sort_Int, "Invalid int sort");
+      Assert (Bool ("A").Sort = Sort_Bool, "Invalid bool sort");
+      Assert (Bool (True).Sort = Sort_Bool, "Invalid bool sort");
+      Assert (B.Sort = Sort_Bool, "Invalid bool sort");
+      Assert (I.Sort = Sort_Int, "Invalid int sort");
       Assert_Exception (Invalid_Bool'Access, "Invalid bool conversion not detected");
       Assert_Exception (Invalid_Int'Access, "Invalid int conversion not detected");
    end Test_Sort;
@@ -495,4 +469,4 @@ package body AZ3_Tests is
       return Format ("Z3 Tests");
    end Name;
 
-end AZ3_Tests;
+end Z3.Tests;
