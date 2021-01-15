@@ -430,6 +430,41 @@ package body AZ3_Tests is
 
    ---------------------------------------------------------------------------
 
+   procedure Invalid_Bool
+   is
+      B      : constant Z3.Expr_Type'Class := Z3.Bool ("B");
+      Ignore : Z3.Int_Type;
+   begin
+      Ignore := Z3.Int (B);
+   end Invalid_Bool;
+
+   procedure Invalid_Int
+   is
+      I      : constant Z3.Expr_Type'Class := Z3.Int ("I");
+      Ignore : Z3.Bool_Type;
+   begin
+      Ignore := Z3.Bool (I);
+   end Invalid_Int;
+
+   procedure Test_Sort (T : in out Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use type Z3.Expr_Sort;
+      B : constant Z3.Expr_Type'Class := Z3.Bool ("B");
+      I : constant Z3.Expr_Type'Class := Z3.Int ("I");
+   begin
+      Assert (Z3.Int ("A").Sort = Z3.Sort_Int, "Invalid int sort");
+      Assert (Z3.Int (LLU'(1)).Sort = Z3.Sort_Int, "Invalid int sort");
+      Assert (Z3.Bool ("A").Sort = Z3.Sort_Bool, "Invalid bool sort");
+      Assert (Z3.Bool (True).Sort = Z3.Sort_Bool, "Invalid bool sort");
+      Assert (B.Sort = Z3.Sort_Bool, "Invalid bool sort");
+      Assert (I.Sort = Z3.Sort_Int, "Invalid int sort");
+      Assert_Exception (Invalid_Bool'Access, "Invalid bool conversion not detected");
+      Assert_Exception (Invalid_Int'Access, "Invalid int conversion not detected");
+   end Test_Sort;
+
+   ---------------------------------------------------------------------------
+
    overriding
    procedure Register_Tests (T : in out Test_Case)
    is
@@ -447,6 +482,7 @@ package body AZ3_Tests is
       Register_Routine (T, Test_Terms'Access, "Terms");
       Register_Routine (T, Test_Kind'Access, "Kind");
       Register_Routine (T, Test_Optimize'Access, "Optimize");
+      Register_Routine (T, Test_Sort'Access, "Sort");
    end Register_Tests;
 
    ---------------------------------------------------------------------------

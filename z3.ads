@@ -33,6 +33,8 @@ package Z3 is  --  GCOV_EXCL_LINE
                       Kind_Mod,
                       Kind_Power);
 
+   type Expr_Sort is (Sort_Bool, Sort_Int, Sort_Unknown);
+
    Default_Context : constant Context;
    function New_Context return Context;
 
@@ -55,6 +57,7 @@ package Z3 is  --  GCOV_EXCL_LINE
    function Term (Value : Expr_Type;
                   Index : Natural) return Expr_Type'Class;
    function Kind (Value : Expr_Type) return Expr_Kind;
+   function Sort (Value : Expr_Type) return Expr_Sort;
 
    type Cursor is private;
 
@@ -75,7 +78,8 @@ package Z3 is  --  GCOV_EXCL_LINE
 
    function Bool (Name : String; Context : Z3.Context := Default_Context) return Bool_Type;
    function Bool (Value : Boolean; Context : Z3.Context := Default_Context) return Bool_Type;
-   function Bool (Expr : Expr_Type'Class) return Bool_Type;
+   function Bool (Expr : Expr_Type'Class) return Bool_Type with
+      Pre => Sort (Expr) = Sort_Bool;
    function Same_Context (Terms : Bool_Array) return Boolean;
    function Has_Context (Value : Bool_Type; Context : Z3.Context) return Boolean;
    overriding
@@ -129,7 +133,8 @@ package Z3 is  --  GCOV_EXCL_LINE
                  Context : Z3.Context := Default_Context) return Int_Type;
    function Int (Value   : Long_Long_Unsigned;
                  Context : Z3.Context := Default_Context) return Int_Type;
-   function Int (Expr : Expr_Type'Class) return Int_Type;
+   function Int (Expr : Expr_Type'Class) return Int_Type with
+      Pre => Sort (Expr) = Sort_Int;
    function Same_Context (Values : Int_Array) return Boolean;
    overriding
    function Simplified (Value : Int_Type) return Int_Type;
