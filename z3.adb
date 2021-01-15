@@ -597,6 +597,19 @@ is
 
    ------------------------------------------------------------------------------------------------
 
+   function Sort (Value : Expr_Type) return Expr_Sort
+   is
+      Ctx : constant z3_api_h.Z3_context := Value.Context.Data;
+   begin
+      case z3_api_h.Z3_get_sort_kind (Ctx, z3_api_h.Z3_get_sort (Ctx, Value.Data)) is
+         when z3_api_h.Z3_BOOL_SORT => return Sort_Bool;
+         when z3_api_h.Z3_INT_SORT  => return Sort_Int;
+         when others                => return Sort_Unknown;  --  GCOV_EXCL_LINE
+      end case;
+   end Sort;
+
+   ------------------------------------------------------------------------------------------------
+
    overriding
    function "=" (Left, Right : Expr_Type) return Boolean
    is
