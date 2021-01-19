@@ -768,4 +768,71 @@ is
    function Next (Object : Expr_Iterator;
                   Pos    : Cursor) return Cursor is (Cursor'(Expr => Pos.Expr, Index => Pos.Index + 1));
 
+   ------------------------------------------------------------------------------------------------
+
+   function Big_Int (Value   : String;
+                     Base    : Positive   := 10;
+                     Context : Z3.Context := Default_Context) return Int_Type
+   is
+      Position : Long_Long_Integer := 0;
+      Result   : Int_Type;
+
+      procedure Check_Digit (Digit : Character;
+                             Base  : Positive)
+      is
+      begin
+         if
+            Digit not in '0' .. '9' | 'a' .. 'f' | 'A' .. 'F'
+            or (Digit in '0' .. '9'
+                and Base <= 10
+                and Base <= Character'Pos (Digit) - Character'Pos ('0'))
+            or (Digit in 'A' .. 'F'
+                and Base <= 16
+                and Base <= Character'Pos (Digit) - Character'Pos ('A'))
+            or (Digit in 'a' .. 'f'
+                and Base <= 16
+                and Base <= Character'Pos (Digit) - Character'Pos ('a'))
+         then
+            raise Z3.Value_Error with "Invalid character '" & Digit & "' in numeric value";
+         end if;
+      end Check_Digit;
+
+      function Val (Digit : Character) return Int_Type
+      is
+      begin
+         if Digit >= '0' and Digit <= '9' then
+            return Int (Long_Long_Unsigned (Character'Pos (Digit) - Character'Pos ('0')));
+         elsif Digit >= 'a' and Digit <= 'f' then
+            return Int (Long_Long_Unsigned (Character'Pos (Digit) - Character'Pos ('a') + 10));
+         else
+            return Int (Long_Long_Unsigned (Character'Pos (Digit) - Character'Pos ('A') + 10));
+         end if;
+      end Val;
+      Underscore_Seen : Boolean := False;
+   begin
+      for C of reverse Value loop
+         if C = '_' then
+            if Position = 0 then
+               raise Z3.Value_Error with "Leading underscore in " & Value;
+            end if;
+            if Underscore_Seen then
+               raise Z3.Value_Error with "Double underscore in " & Value;
+            end if;
+         else
+            Check_Digit (C, Base);
+            if Position = 0 then
+               Result := Val (C);
+            else
+               Result := Result + Int (Long_Long_Unsigned (Base)) ** Int (Position) * Val (C);
+            end if;
+            Position := Position + 1;
+         end if;
+         Underscore_Seen := C = '_';
+      end loop;
+      if Underscore_Seen then
+         raise Z3.Value_Error with "Trailing underscore in " & Value;
+      end if;
+      return Simplified (Result);
+   end Big_Int;
+
 end Z3;

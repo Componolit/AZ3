@@ -135,6 +135,11 @@ package Z3 is  --  GCOV_EXCL_LINE
                  Context : Z3.Context := Default_Context) return Int_Type;
    function Int (Expr : Expr_Type'Class) return Int_Type with
       Pre => Sort (Expr) = Sort_Int;
+
+   function Big_Int (Value   : String;
+                     Base    : Positive   := 10;
+                     Context : Z3.Context := Default_Context) return Int_Type;
+
    function Same_Context (Values : Int_Array) return Boolean;
    overriding
    function Simplified (Value : Int_Type) return Int_Type;
