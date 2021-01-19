@@ -437,6 +437,77 @@ package body Z3.Tests is
       Assert_Exception (Invalid_Int'Access, "Invalid int conversion not detected");
    end Test_Sort;
 
+   procedure Test_Invalid_Big_Int_Base_16
+   is
+      Ignore : Int_Type;
+   begin
+      Ignore := Big_Int ("1234_ABCD_EFG", 16);
+   end Test_Invalid_Big_Int_Base_16; --  GCOV_EXCL_LINE
+
+   procedure Test_Invalid_Big_Int_Base_8
+   is
+      Ignore : Int_Type;
+   begin
+      Ignore := Big_Int ("43583912", 8);
+   end Test_Invalid_Big_Int_Base_8; --  GCOV_EXCL_LINE
+
+   procedure Test_Invalid_Big_Int_Base_2
+   is
+      Ignore : Int_Type;
+   begin
+      Ignore := Big_Int ("110011104111", 2);
+   end Test_Invalid_Big_Int_Base_2; --  GCOV_EXCL_LINE
+
+   procedure Test_Invalid_Big_Int_Leading_Underscore
+   is
+      Ignore : Int_Type;
+   begin
+      Ignore := Big_Int ("_a53f_ffff_912e", 16);
+   end Test_Invalid_Big_Int_Leading_Underscore; --  GCOV_EXCL_LINE
+
+   procedure Test_Invalid_Big_Int_Trailing_Underscore
+   is
+      Ignore : Int_Type;
+   begin
+      Ignore := Big_Int ("a53f_ffff_912e_", 16);
+   end Test_Invalid_Big_Int_Trailing_Underscore; --  GCOV_EXCL_LINE
+
+   procedure Test_Invalid_Big_Int_Double_Underscore
+   is
+      Ignore : Int_Type;
+   begin
+      Ignore := Big_Int ("a53f__ffff_912e", 16);
+   end Test_Invalid_Big_Int_Double_Underscore; --  GCOV_EXCL_LINE
+
+   procedure Test_Big_Int (T : in out Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      Assert (Big_Int ("0") = Int (LLU'(0)), "Invalid big integer (0)");
+      Assert (Big_Int ("1") = Int (LLU'(1)), "Invalid big integer (1)");
+      Assert (Big_Int ("42") = Int (LLU'(42)), "Invalid big integer (42)");
+      Assert (Big_Int ("FFFF_FFFF_FFFF_FFFF", 16) = Int (LLU'(16#FFFF_FFFF_FFFF_FFFF#)),
+              "Invalid big integer (2^64-1, upper case)");
+      Assert (Big_Int ("ffff_ffff_ffff_ffff", 16) = Int (LLU'(16#FFFF_FFFF_FFFF_FFFF#)),
+              "Invalid big integer (2^64-1, lower case)");
+      Assert (Simp ((Big_Int ("FFFF_FFFF_FFFF_FFFF_FFFF", 16) + Int (LLU'(1)))
+                     / Int (LLU'(16#10_0000#)))
+              = Int (LLU'(16#1000_0000_0000_0000#)),
+              "Invalid big integer (2^80)");
+      Assert_Exception (Test_Invalid_Big_Int_Base_16'Access,
+                        "Invalid digit in big integer not detected (base 16)");
+      Assert_Exception (Test_Invalid_Big_Int_Base_8'Access,
+                        "Invalid digit in big integer not detected (base 8)");
+      Assert_Exception (Test_Invalid_Big_Int_Base_2'Access,
+                        "Invalid digit in big integer not detected (base 2)");
+      Assert_Exception (Test_Invalid_Big_Int_Leading_Underscore'Access,
+                        "Leading underscore in big integer not detected");
+      Assert_Exception (Test_Invalid_Big_Int_Trailing_Underscore'Access,
+                        "Trailing underscore in big integer not detected");
+      Assert_Exception (Test_Invalid_Big_Int_Double_Underscore'Access,
+                        "Trailing underscore in big integer not detected");
+   end Test_Big_Int;
+
    ---------------------------------------------------------------------------
 
    overriding
@@ -457,6 +528,7 @@ package body Z3.Tests is
       Register_Routine (T, Test_Kind'Access, "Kind");
       Register_Routine (T, Test_Optimize'Access, "Optimize");
       Register_Routine (T, Test_Sort'Access, "Sort");
+      Register_Routine (T, Test_Big_Int'Access, "Big Integer");
    end Register_Tests;
 
    ---------------------------------------------------------------------------
