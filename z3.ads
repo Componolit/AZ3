@@ -138,7 +138,8 @@ package Z3 is  --  GCOV_EXCL_LINE
 
    function Big_Int (Value   : String;
                      Base    : Positive   := 10;
-                     Context : Z3.Context := Default_Context) return Int_Type;
+                     Context : Z3.Context := Default_Context) return Int_Type with
+      Pre => Base >= 2 and Base <= 16;
 
    function Same_Context (Values : Int_Array) return Boolean;
    overriding
