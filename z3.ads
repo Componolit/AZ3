@@ -4,6 +4,7 @@ with Ada.Iterator_Interfaces;
 private with Ada.Containers;
 private with Ada.Containers.Indefinite_Hashed_Maps;
 private with Interfaces.C;
+private with Interfaces.C.Strings;
 
 package Z3 is  --  GCOV_EXCL_LINE
 
@@ -209,10 +210,45 @@ package Z3 is  --  GCOV_EXCL_LINE
    --  Solver
    type Solver is tagged limited private;
 
+   type Solver_Logic is private;
+
+   Logic_AUFLIA    : constant Solver_Logic;
+   Logic_AUFLIRA   : constant Solver_Logic;
+   Logic_AUFNIRA   : constant Solver_Logic;
+   Logic_LRA       : constant Solver_Logic;
+   Logic_QF_ABV    : constant Solver_Logic;
+   Logic_QF_AUFBV  : constant Solver_Logic;
+   Logic_QF_UFBV   : constant Solver_Logic;
+   Logic_QF_DT     : constant Solver_Logic;
+   Logic_QF_AUFLIA : constant Solver_Logic;
+   Logic_QF_AX     : constant Solver_Logic;
+   Logic_QF_BV     : constant Solver_Logic;
+   Logic_QF_IDL    : constant Solver_Logic;
+   Logic_QF_RDL    : constant Solver_Logic;
+   Logic_QF_LIA    : constant Solver_Logic;
+   Logic_QF_LRA    : constant Solver_Logic;
+   Logic_QF_NIA    : constant Solver_Logic;
+   Logic_QF_NRA    : constant Solver_Logic;
+   Logic_QF_UF     : constant Solver_Logic;
+   Logic_QF_UFIDL  : constant Solver_Logic;
+   Logic_QF_UFLIA  : constant Solver_Logic;
+   Logic_QF_UFLRA  : constant Solver_Logic;
+   Logic_QF_UFNRA  : constant Solver_Logic;
+   Logic_UFLRA     : constant Solver_Logic;
+   Logic_UFNIA     : constant Solver_Logic;
+   Logic_UFBV      : constant Solver_Logic;
+   Logic_QF_S      : constant Solver_Logic;
+   Logic_QF_SLIA   : constant Solver_Logic;
+   Logic_QF_FD     : constant Solver_Logic;
+   Logic_SMTPD     : constant Solver_Logic;
+
    function Has_Context (Solver  : Z3.Solver;
                          Context : Z3.Context) return Boolean;
 
    function Create (Context : Z3.Context := Default_Context) return Solver;
+
+   function Create (Logic   : Solver_Logic;
+                    Context : Z3.Context := Default_Context) return Solver;
 
    procedure Assert (Solver  : in out Z3.Solver;
                      Fact    :        Bool_Type'Class;
@@ -287,6 +323,41 @@ private
          Data : z3_api_h.Z3_solver;
          Context : Z3.Context;
       end record;
+
+   package ICS renames Interfaces.C.Strings;
+
+   type Solver_Logic is new ICS.chars_ptr;
+
+   --  See z3/src/cmd_context/check_logic.cpp:set_logic
+   Logic_AUFLIA    : constant Solver_Logic := Solver_Logic (ICS.New_String ("AUFLIA"));
+   Logic_AUFLIRA   : constant Solver_Logic := Solver_Logic (ICS.New_String ("AUFLIRA"));
+   Logic_AUFNIRA   : constant Solver_Logic := Solver_Logic (ICS.New_String ("AUFNIRA"));
+   Logic_LRA       : constant Solver_Logic := Solver_Logic (ICS.New_String ("LRA"));
+   Logic_QF_ABV    : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_ABV"));
+   Logic_QF_AUFBV  : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_AUFBV"));
+   Logic_QF_UFBV   : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_UFBV"));
+   Logic_QF_DT     : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_DT"));
+   Logic_QF_AUFLIA : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_AUFLIA"));
+   Logic_QF_AX     : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_AX"));
+   Logic_QF_BV     : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_BV"));
+   Logic_QF_IDL    : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_IDL"));
+   Logic_QF_RDL    : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_RDL"));
+   Logic_QF_LIA    : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_LIA"));
+   Logic_QF_LRA    : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_LRA"));
+   Logic_QF_NIA    : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_NIA"));
+   Logic_QF_NRA    : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_NRA"));
+   Logic_QF_UF     : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_UF"));
+   Logic_QF_UFIDL  : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_UFIDL"));
+   Logic_QF_UFLIA  : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_UFLIA"));
+   Logic_QF_UFLRA  : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_UFLRA"));
+   Logic_QF_UFNRA  : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_UFNRA"));
+   Logic_UFLRA     : constant Solver_Logic := Solver_Logic (ICS.New_String ("UFLRA"));
+   Logic_UFNIA     : constant Solver_Logic := Solver_Logic (ICS.New_String ("UFNIA"));
+   Logic_UFBV      : constant Solver_Logic := Solver_Logic (ICS.New_String ("UFBV"));
+   Logic_QF_S      : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_S"));
+   Logic_QF_SLIA   : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_SLIA"));
+   Logic_QF_FD     : constant Solver_Logic := Solver_Logic (ICS.New_String ("QF_FD"));
+   Logic_SMTPD     : constant Solver_Logic := Solver_Logic (ICS.New_String ("SMTFD"));
 
    type Z3_ast_array is array (Natural range <>) of z3_api_h.Z3_ast;
 
