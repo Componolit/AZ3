@@ -510,6 +510,49 @@ package body Z3.Tests is
 
    ---------------------------------------------------------------------------
 
+   procedure Test_Logic (T : in out Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      procedure Test_Create (Logic : Solver_Logic)
+      is
+         Ignore_Solver : constant Solver := Create (Logic);
+      begin
+         null;
+      end Test_Create;
+   begin
+      Test_Create (Logic_AUFLIA);
+      Test_Create (Logic_AUFLIRA);
+      Test_Create (Logic_AUFNIRA);
+      Test_Create (Logic_LRA);
+      Test_Create (Logic_QF_ABV);
+      Test_Create (Logic_QF_AUFBV);
+      Test_Create (Logic_QF_UFBV);
+      Test_Create (Logic_QF_DT);
+      Test_Create (Logic_QF_AUFLIA);
+      Test_Create (Logic_QF_AX);
+      Test_Create (Logic_QF_BV);
+      Test_Create (Logic_QF_IDL);
+      Test_Create (Logic_QF_RDL);
+      Test_Create (Logic_QF_LIA);
+      Test_Create (Logic_QF_LRA);
+      Test_Create (Logic_QF_NIA);
+      Test_Create (Logic_QF_NRA);
+      Test_Create (Logic_QF_UF);
+      Test_Create (Logic_QF_UFIDL);
+      Test_Create (Logic_QF_UFLIA);
+      Test_Create (Logic_QF_UFLRA);
+      Test_Create (Logic_QF_UFNRA);
+      Test_Create (Logic_UFLRA);
+      Test_Create (Logic_UFNIA);
+      Test_Create (Logic_UFBV);
+      Test_Create (Logic_QF_S);
+      Test_Create (Logic_QF_SLIA);
+      Test_Create (Logic_QF_FD);
+      Test_Create (Logic_SMTPD);
+   end Test_Logic;
+
+   ---------------------------------------------------------------------------
+
    overriding
    procedure Register_Tests (T : in out Test_Case)
    is
@@ -529,6 +572,7 @@ package body Z3.Tests is
       Register_Routine (T, Test_Optimize'Access, "Optimize");
       Register_Routine (T, Test_Sort'Access, "Sort");
       Register_Routine (T, Test_Big_Int'Access, "Big Integer");
+      Register_Routine (T, Test_Logic'Access, "Logic");
    end Register_Tests;
 
    ---------------------------------------------------------------------------

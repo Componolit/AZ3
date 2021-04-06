@@ -1,5 +1,4 @@
 with Interfaces.C.Extensions;
-with Interfaces.C.Strings;
 with Ada.Strings.Hash;
 with z3_optimization_h;
 with System;
@@ -7,7 +6,6 @@ with System;
 package body Z3
 is
    use Interfaces.C.Strings;
-   package ICS renames Interfaces.C.Strings;
 
    procedure Set_Param_Value (ID : String; Value : String)
    is
@@ -388,6 +386,18 @@ is
    is
    begin
       return (Data    => z3_api_h.Z3_mk_solver (Context.Data),
+              Context => Context);
+   end Create;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Create (Logic   : Solver_Logic;
+                    Context : Z3.Context := Default_Context) return Solver
+   is
+   begin
+      return (Data    => z3_api_h.Z3_mk_solver_for_logic
+                           (Context.Data,
+                            z3_api_h.Z3_mk_string_symbol (Context.Data, z3_api_h.Z3_string (Logic))),
               Context => Context);
    end Create;
 
