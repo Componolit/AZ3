@@ -541,6 +541,18 @@ is
 
    ------------------------------------------------------------------------------------------------
 
+   function To_Z3_ast_array (Value : Bit_Vector_Array) return Z3_ast_array
+   is
+      Result : Z3_ast_array (Value'First .. Value'Last);
+   begin
+      for I in Value'Range loop
+         Result (I) := Value (I).Data;
+      end loop;
+      return Result;
+   end To_Z3_ast_array;
+
+   ------------------------------------------------------------------------------------------------
+
    function Terms (Value : Expr_Type) return Natural
    is
    begin
@@ -582,23 +594,33 @@ is
             Decl_Kind := z3_api_h.Z3_get_decl_kind
                             (Ctx, z3_api_h.Z3_get_app_decl (Ctx, z3_api_h.Z3_to_app (Ctx, Value.Data)));
             case Decl_Kind is
-               when z3_api_h.Z3_OP_TRUE | z3_api_h.Z3_OP_FALSE => return Kind_Constant;
-               when z3_api_h.Z3_OP_EQ                          => return Kind_Equal;
-               when z3_api_h.Z3_OP_AND                         => return Kind_And;
-               when z3_api_h.Z3_OP_OR                          => return Kind_Or;
-               when z3_api_h.Z3_OP_NOT                         => return Kind_Not;
-               when z3_api_h.Z3_OP_LE                          => return Kind_Less_Equal;
-               when z3_api_h.Z3_OP_GE                          => return Kind_Greater_Equal;
-               when z3_api_h.Z3_OP_LT                          => return Kind_Less_Than;
-               when z3_api_h.Z3_OP_GT                          => return Kind_Greater_Than;
-               when z3_api_h.Z3_OP_ADD                         => return Kind_Add;
-               when z3_api_h.Z3_OP_SUB                         => return Kind_Sub;
-               when z3_api_h.Z3_OP_MUL                         => return Kind_Mul;
-               when z3_api_h.Z3_OP_DIV | z3_api_h.Z3_OP_IDIV   => return Kind_Div;
-               when z3_api_h.Z3_OP_MOD                         => return Kind_Mod;
-               when z3_api_h.Z3_OP_POWER                       => return Kind_Power;
-               when z3_api_h.Z3_OP_UNINTERPRETED               => return Kind_Var;
-               when others                                     => return Kind_Any;  --  GCOV_EXCL_LINE
+               when z3_api_h.Z3_OP_TRUE          => return Kind_Constant;
+               when z3_api_h.Z3_OP_FALSE         => return Kind_Constant;
+               when z3_api_h.Z3_OP_EQ            => return Kind_Equal;
+               when z3_api_h.Z3_OP_AND           => return Kind_And;
+               when z3_api_h.Z3_OP_OR            => return Kind_Or;
+               when z3_api_h.Z3_OP_NOT           => return Kind_Not;
+               when z3_api_h.Z3_OP_LE            => return Kind_Less_Equal;
+               when z3_api_h.Z3_OP_SLEQ          => return Kind_Less_Equal;
+               when z3_api_h.Z3_OP_GE            => return Kind_Greater_Equal;
+               when z3_api_h.Z3_OP_SGEQ          => return Kind_Greater_Equal;
+               when z3_api_h.Z3_OP_LT            => return Kind_Less_Than;
+               when z3_api_h.Z3_OP_SLT           => return Kind_Less_Than;
+               when z3_api_h.Z3_OP_GT            => return Kind_Greater_Than;
+               when z3_api_h.Z3_OP_SGT           => return Kind_Greater_Than;
+               when z3_api_h.Z3_OP_ADD           => return Kind_Add;
+               when z3_api_h.Z3_OP_BADD          => return Kind_Add;
+               when z3_api_h.Z3_OP_SUB           => return Kind_Sub;
+               when z3_api_h.Z3_OP_BSUB          => return Kind_Sub;
+               when z3_api_h.Z3_OP_MUL           => return Kind_Mul;
+               when z3_api_h.Z3_OP_BMUL          => return Kind_Mul;
+               when z3_api_h.Z3_OP_IDIV          => return Kind_Div;
+               when z3_api_h.Z3_OP_BSDIV         => return Kind_Div;
+               when z3_api_h.Z3_OP_MOD           => return Kind_Mod;
+               when z3_api_h.Z3_OP_BSMOD         => return Kind_Mod;
+               when z3_api_h.Z3_OP_POWER         => return Kind_Power;
+               when z3_api_h.Z3_OP_UNINTERPRETED => return Kind_Var;
+               when others                       => return Kind_Any;  --  GCOV_EXCL_LINE
             end case;
          when others =>  --  GCOV_EXCL_LINE
             return Kind_Any;  --  GCOV_EXCL_LINE
@@ -614,6 +636,7 @@ is
       case z3_api_h.Z3_get_sort_kind (Ctx, z3_api_h.Z3_get_sort (Ctx, Value.Data)) is
          when z3_api_h.Z3_BOOL_SORT => return Sort_Bool;
          when z3_api_h.Z3_INT_SORT  => return Sort_Int;
+         when z3_api_h.Z3_BV_SORT   => return Sort_Bit_Vector;
          when others                => return Sort_Unknown;  --  GCOV_EXCL_LINE
       end case;
    end Sort;
@@ -844,5 +867,226 @@ is
       end if;
       return Simplified (Result);
    end Big_Int;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Bit_Vector (Name    : String;
+                        Size    : Natural;
+                        Context : Z3.Context := Default_Context) return Bit_Vector_Type
+   is
+      C_Name : constant chars_ptr := New_String (Name);
+      Symbol : constant z3_api_h.Z3_symbol :=
+         z3_api_h.Z3_mk_string_symbol (c => Context.Data,
+                                       s => z3_api_h.Z3_string (C_Name));
+   begin
+      return (Data    => z3_api_h.Z3_mk_const (c  => Context.Data,
+                                               s  => Symbol,
+                                               ty => z3_api_h.Z3_mk_bv_sort
+                                                  (Context.Data, Interfaces.C.unsigned (Size))),
+              Context => Context);
+   end Bit_Vector;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Bit_Vector (Value   : Long_Long_Unsigned;
+                        Size    : Natural;
+                        Context : Z3.Context := Default_Context) return Bit_Vector_Type
+   is
+   begin
+      return (Data    => z3_api_h.Z3_mk_unsigned_int64 (c  => Context.Data,
+                                                        v  => Interfaces.C.Extensions.unsigned_long_long (Value),
+                                                        ty => z3_api_h.Z3_mk_bv_sort
+                                                           (Context.Data, Interfaces.C.unsigned (Size))),
+              Context => Context);
+   end Bit_Vector;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Bit_Vector (Value   : Long_Long_Integer;
+                        Size    : Natural;
+                        Context : Z3.Context := Default_Context) return Bit_Vector_Type
+   is
+   begin
+      return (Data    => z3_api_h.Z3_mk_int64 (c  => Context.Data,
+                                               v  => Value,
+                                               ty => z3_api_h.Z3_mk_bv_sort
+                                                  (Context.Data, Interfaces.C.unsigned (Size))),
+              Context => Context);
+   end Bit_Vector;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Bit_Vector (Expr : Expr_Type'Class) return Bit_Vector_Type is
+      (Data    => Expr.Data,
+       Context => Expr.Context);
+
+   ------------------------------------------------------------------------------------------------
+
+   function Same_Context (Values : Bit_Vector_Array) return Boolean
+   is
+      First : Bit_Vector_Type;
+   begin
+      if Values'Length <= 1 then
+         return True;
+      end if;
+      First := Values (Values'First);
+      return (for all T of Values (Values'First + 1 .. Values'Last) => Same_Context (T, First));
+   end Same_Context;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Substitute (Expr : Expr_Type'Class;
+                        From : Bit_Vector_Array;
+                        To   : Bit_Vector_Array) return Expr_Type'Class
+   is
+      From_Ast : constant Z3_ast_array := To_Z3_ast_array (From);
+      To_Ast   : constant Z3_ast_array := To_Z3_ast_array (To);
+   begin
+      if From'Length = 0 then
+         return Expr;
+      end if;
+      return Expr_Type'(Data    => z3_api_h.Z3_substitute (Expr.Context.Data,
+                                                           Expr.Data,
+                                                           From_Ast'Length,
+                                                           From_Ast'Address,
+                                                           To_Ast'Address),
+                        Context => Expr.Context);
+   end Substitute;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Value (Data : Bit_Vector_Type) return Long_Long_Unsigned
+   is
+      Success : z3_api_h.Z3_bool;
+      Result  : aliased Interfaces.C.Extensions.unsigned_long_long;
+      use type Interfaces.C.Extensions.bool;
+   begin
+      Success := z3_api_h.Z3_get_numeral_uint64 (c => Data.Context.Data,
+                                                 v => Data.Data,
+                                                 u => Result'Access);
+      if not Success then
+         raise Z3.Value_Error;
+      end if;
+      return Long_Long_Unsigned (Result);
+   end Value;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Size (Value : Bit_Vector_Type) return Natural
+   is
+   begin
+      return Natural (z3_api_h.Z3_get_bv_sort_size (c => Value.Context.Data,
+                                                    t => z3_api_h.Z3_get_sort (c => Value.Context.Data,
+                                                                               a => Value.Data)));
+   end Size;
+
+   ------------------------------------------------------------------------------------------------
+
+   function "+" (Left : Bit_Vector_Type; Right : Bit_Vector_Type) return Bit_Vector_Type
+   is
+   begin
+      return (Data    => z3_api_h.Z3_mk_bvadd (c  => Left.Context.Data,
+                                               t1 => Left.Data,
+                                               t2 => Right.Data),
+              Context => Left.Context);
+   end "+";
+
+   ------------------------------------------------------------------------------------------------
+
+   function "-" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bit_Vector_Type
+   is
+   begin
+      return (Data    => z3_api_h.Z3_mk_bvsub (c  => Left.Context.Data,
+                                               t1 => Left.Data,
+                                               t2 => Right.Data),
+              Context => Left.Context);
+   end "-";
+
+   ------------------------------------------------------------------------------------------------
+
+   function "*" (Left : Bit_Vector_Type; Right : Bit_Vector_Type) return Bit_Vector_Type
+   is
+   begin
+      return (Data    => z3_api_h.Z3_mk_bvmul (c  => Left.Context.Data,
+                                               t1 => Left.Data,
+                                               t2 => Right.Data),
+              Context => Left.Context);
+   end "*";
+
+   ------------------------------------------------------------------------------------------------
+
+   function "/" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bit_Vector_Type
+   is
+   begin
+      return (Data    => z3_api_h.Z3_mk_bvsdiv (c  => Left.Context.Data,
+                                                t1 => Left.Data,
+                                                t2 => Right.Data),
+              Context => Left.Context);
+   end "/";
+
+   ------------------------------------------------------------------------------------------------
+
+   function "mod" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bit_Vector_Type
+   is
+   begin
+      return (Data    => z3_api_h.Z3_mk_bvsmod (c  => Left.Context.Data,
+                                                t1 => Left.Data,
+                                                t2 => Right.Data),
+              Context => Left.Context);
+   end "mod";
+
+   ------------------------------------------------------------------------------------------------
+
+   function "-" (Value : Bit_Vector_Type) return Bit_Vector_Type
+   is
+   begin
+      return (Data    => z3_api_h.Z3_mk_bvneg (c  => Value.Context.Data,
+                                               t1 => Value.Data),
+              Context => Value.Context);
+   end "-";
+
+   ------------------------------------------------------------------------------------------------
+
+   function "<" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bool_Type
+   is
+   begin
+      return (Data    => z3_api_h.Z3_mk_bvslt (c  => Left.Context.Data,
+                                               t1 => Left.Data,
+                                               t2 => Right.Data),
+              Context => Left.Context);
+   end "<";
+
+   ------------------------------------------------------------------------------------------------
+
+   function "<=" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bool_Type
+   is
+   begin
+      return (Data    => z3_api_h.Z3_mk_bvsle (c  => Left.Context.Data,
+                                               t1 => Left.Data,
+                                               t2 => Right.Data),
+              Context => Left.Context);
+   end "<=";
+
+   ------------------------------------------------------------------------------------------------
+
+   function ">" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bool_Type
+   is
+   begin
+      return (Data    => z3_api_h.Z3_mk_bvsgt (c  => Left.Context.Data,
+                                               t1 => Left.Data,
+                                               t2 => Right.Data),
+              Context => Left.Context);
+   end ">";
+
+   ------------------------------------------------------------------------------------------------
+
+   function ">=" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bool_Type
+   is
+   begin
+      return (Data    => z3_api_h.Z3_mk_bvsge (c  => Left.Context.Data,
+                                               t1 => Left.Data,
+                                               t2 => Right.Data),
+              Context => Left.Context);
+   end ">=";
 
 end Z3;

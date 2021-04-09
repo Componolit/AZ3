@@ -17,6 +17,20 @@ package body Z3.Tests is
       return V.Simplified;
    end Simp;
 
+   function Simp (V : Bit_Vector_Type) return Bit_Vector_Type is
+   begin
+      return V.Simplified;
+   end Simp;
+
+   function Bv (V : Long_Long_Integer) return Bit_Vector_Type is
+      (Bit_Vector (V, 65));
+
+   function Bv (V : Long_Long_Unsigned) return Bit_Vector_Type is
+      (Bit_Vector (V, 65));
+
+   function Bv (V : String) return Bit_Vector_Type is
+      (Bit_Vector (V, 65));
+
    ---------------------------------------------------------------------------
 
    procedure Test_Set_Param_Value (T : in out Test_Cases.Test_Case'Class)
@@ -137,6 +151,86 @@ package body Z3.Tests is
 
    ---------------------------------------------------------------------------
 
+   procedure Test_Bit_Vector (T : in out Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced  (T);
+   begin
+      Assert (Simp (Bv (LLI'(1)) = Bv (LLI'(1))) = Bool (True), "1 != 1");
+      Assert (Simp (Bv (LLI'(1)) = Bv (LLI'(2))) = Bool (False), "1 == 2");
+      Assert (Simp (Bv (LLI'(1)) /= Bv (LLI'(2))) = Bool (True), "1 == 2");
+      Assert (Simp (Bv (LLI'(1)) /= Bv (LLI'(1))) = Bool (False), "1 != 2");
+      Assert (Simp (Bv (LLI'(1)) + Bv (LLI'(2))) = Bv (LLI'(3)), "1 + 2 != 3");
+      Assert (Simp (Bv (LLI'(1)) + Bv (LLI'(2)) + Bv (LLI'(3))) = Bv (LLI'(6)), "1 + 2 + 3 != 6");
+      Assert (Simp (Bv (LLI'(1)) + Bv (LLI'(2)) + Bv (LLI'(3)) /= Bv (LLI'(7))) = Bool (True), "1 + 2 + 3 == 7");
+      Assert (Simp (Bv (LLI'(0)) + Bv ("X") = Bv ("X")) = Bool (True), "0 + X != X");
+      Assert (Simp (Bv (LLI'(2)) * Bv (LLI'(4)) = Bv (LLI'(8))) = Bool (True), "2 * 4 != 8");
+      Assert (Simp (Bv (LLI'(0)) * Bv (LLI'(124)) = Bv (LLI'(0))) = Bool (True), "0 * 124 != 0");
+      Assert (Simp (Bv (LLI'(0)) * Bv ("X") = Bv (LLI'(0))) = Bool (True), "0 * X != 0");
+      Assert (Simp (Bv (LLI'(5)) - Bv (LLI'(3)) = Bv (LLI'(2))) = Bool (True), "5 - 3 != 2");
+      Assert (Simp (Bv (LLI'(5)) - Bv (LLI'(30)) = Bv (LLI'(-25))) = Bool (True), "5 - 30 != 25");
+      Assert (Simp (Bv ("X") - Bv (LLI'(0)) = Bv ("X")) = Bool (True), "X - 0 != X");
+      Assert (Simp (Bv (LLI'(6)) / Bv (LLI'(2)) = Bv (LLI'(3))) = Bool (True), "6 / 2 != 3");
+      Assert (Simp (Bv (LLI'(0)) / Bv (LLI'(15)) = Bv (LLI'(0))) = Bool (True), "0 / 15 != 0");
+      Assert (Simp (Bv (LLI'(10)) / Bv (LLI'(3)) = Bv (LLI'(3))) = Bool (True), "10 / 3 != 3");
+      Assert (Simp (Bv (LLI'(16)) mod Bv (LLI'(8)) = Bv (LLI'(0))) = Bool (True), "16 % 8 != 0");
+      Assert (Simp (Bv (LLI'(17)) mod Bv (LLI'(8)) = Bv (LLI'(1))) = Bool (True), "17 % 8 != 1");
+      Assert (Simp (-Bv (LLI'(5)) + Bv (LLI'(5)) = Bv (LLI'(0))) = Bool (True), "-5 + 5 != 0");
+      --  Assert (Simp (Bv (LLI'(2)) ** Bv (LLI'(4)) = Bv (LLI'(16))) = Bool (True), "2^4 != 16");
+      --  Assert (Simp (Bv (LLI'(2)) ** Bv (LLI'(0)) = Bv (LLI'(1))) = Bool (True), "2^0 != 1");
+      Assert (Simp (Bv (LLI'(2)) < Bv (LLI'(0))) = Bool (False), "2 < 0 != false");
+      Assert (Simp (Bv (LLI'(0)) < Bv (LLI'(10))) = Bool (True), "0 < 10 != true");
+      Assert (Simp (Bv (LLI'(2)) <= Bv (LLI'(0))) = Bool (False), "2 <= 0 != false");
+      Assert (Simp (Bv (LLI'(0)) <= Bv (LLI'(10))) = Bool (True), "0 <= 10 != true");
+      Assert (Simp (Bv (LLI'(3)) <= Bv (LLI'(3))) = Bool (True), "3 <= 3 != true");
+      Assert (Simp (Bv (LLI'(0)) > Bv (LLI'(2))) = Bool (False), "2 > 0 != false");
+      Assert (Simp (Bv (LLI'(10)) > Bv (LLI'(0))) = Bool (True), "10 > 0 != true");
+      Assert (Simp (Bv (LLI'(0)) >= Bv (LLI'(2))) = Bool (False), "0 >= 2 != false");
+      Assert (Simp (Bv (LLI'(10)) >= Bv (LLI'(0))) = Bool (True), "10 >= 0 != true");
+      Assert (Simp (Bv (LLI'(3)) >= Bv (LLI'(3))) = Bool (True), "3 >= 3 != true");
+   end Test_Bit_Vector;
+
+   ---------------------------------------------------------------------------
+
+   procedure Test_Unsigned_Bit_Vector (T : in out Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      Assert (Simp (Bv (LLU'(1)) = Bv (LLU'(1))) = Bool (True), "1 != 1");
+      Assert (Simp (Bv (LLU'(1)) = Bv (LLU'(2))) = Bool (False), "1 == 2");
+      Assert (Simp (Bv (LLU'(1)) /= Bv (LLU'(2))) = Bool (True), "1 == 2");
+      Assert (Simp (Bv (LLU'(1)) /= Bv (LLU'(1))) = Bool (False), "1 != 2");
+      Assert (Simp (Bv (LLU'(1)) + Bv (LLU'(2))) = Bv (LLU'(3)), "1 + 2 != 3");
+      Assert (Simp (Bv (LLU'(1)) + Bv (LLU'(2)) + Bv (LLU'(3))) = Bv (LLU'(6)), "1 + 2 + 3 != 6");
+      Assert (Simp (Bv (LLU'(1)) + Bv (LLU'(2)) + Bv (LLU'(3)) /= Bv (LLU'(7))) = Bool (True), "1 + 2 + 3 == 7");
+      Assert (Simp (Bv (LLU'(0)) + Bv ("X") = Bv ("X")) = Bool (True), "0 + X != X");
+      Assert (Simp (Bv (LLU'(2)) * Bv (LLU'(4)) = Bv (LLU'(8))) = Bool (True), "2 * 4 != 8");
+      Assert (Simp (Bv (LLU'(0)) * Bv (LLU'(124)) = Bv (LLU'(0))) = Bool (True), "0 * 124 != 0");
+      Assert (Simp (Bv (LLU'(0)) * Bv ("X") = Bv (LLU'(0))) = Bool (True), "0 * X != 0");
+      Assert (Simp (Bv (LLU'(5)) - Bv (LLU'(3)) = Bv (LLU'(2))) = Bool (True), "5 - 3 != 2");
+      Assert (Simp (Bv (LLU'(5)) - Bv (LLU'(30)) = Bv (LLI'(-25))) = Bool (True), "5 - 30 != 25");
+      Assert (Simp (Bv ("X") - Bv (LLU'(0)) = Bv ("X")) = Bool (True), "X - 0 != X");
+      Assert (Simp (Bv (LLU'(6)) / Bv (LLU'(2)) = Bv (LLU'(3))) = Bool (True), "6 / 2 != 3");
+      Assert (Simp (Bv (LLU'(0)) / Bv (LLU'(15)) = Bv (LLU'(0))) = Bool (True), "0 / 15 != 0");
+      Assert (Simp (Bv (LLU'(10)) / Bv (LLU'(3)) = Bv (LLU'(3))) = Bool (True), "10 / 3 != 3");
+      Assert (Simp (Bv (LLU'(16)) mod Bv (LLU'(8)) = Bv (LLU'(0))) = Bool (True), "16 % 8 != 0");
+      Assert (Simp (Bv (LLU'(17)) mod Bv (LLU'(8)) = Bv (LLU'(1))) = Bool (True), "17 % 8 != 1");
+      Assert (Simp (-Bv (LLU'(5)) + Bv (LLU'(5)) = Bv (LLU'(0))) = Bool (True), "-5 + 5 != 0");
+      --  Assert (Simp (Bv (LLU'(2)) ** Bv (LLU'(4)) = Bv (LLU'(16))) = Bool (True), "2^4 != 16");
+      --  Assert (Simp (Bv (LLU'(2)) ** Bv (LLU'(0)) = Bv (LLU'(1))) = Bool (True), "2^0 != 1");
+      Assert (Simp (Bv (LLU'(2)) < Bv (LLU'(0))) = Bool (False), "2 < 0 != false");
+      Assert (Simp (Bv (LLU'(0)) < Bv (LLU'(10))) = Bool (True), "0 < 10 != true");
+      Assert (Simp (Bv (LLU'(2)) <= Bv (LLU'(0))) = Bool (False), "2 <= 0 != false");
+      Assert (Simp (Bv (LLU'(0)) <= Bv (LLU'(10))) = Bool (True), "0 <= 10 != true");
+      Assert (Simp (Bv (LLU'(3)) <= Bv (LLU'(3))) = Bool (True), "3 <= 3 != true");
+      Assert (Simp (Bv (LLU'(0)) > Bv (LLU'(2))) = Bool (False), "2 > 0 != false");
+      Assert (Simp (Bv (LLU'(10)) > Bv (LLU'(0))) = Bool (True), "10 > 0 != true");
+      Assert (Simp (Bv (LLU'(0)) >= Bv (LLU'(2))) = Bool (False), "0 >= 2 != false");
+      Assert (Simp (Bv (LLU'(10)) >= Bv (LLU'(0))) = Bool (True), "10 >= 0 != true");
+      Assert (Simp (Bv (LLU'(3)) >= Bv (LLU'(3))) = Bool (True), "3 >= 3 != true");
+   end Test_Unsigned_Bit_Vector;
+
+   ---------------------------------------------------------------------------
+
    procedure Test_Solver (T : in out Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced  (T);
@@ -211,6 +305,13 @@ package body Z3.Tests is
       null; --  GCOV_EXCL_LINE
    end Negative_Unsigned;
 
+   procedure Negative_Bit_Vector
+   is
+      Unused : constant LLU := Bv (LLI'(-1)).Value;
+   begin
+      null; --  GCOV_EXCL_LINE
+   end Negative_Bit_Vector;
+
    procedure Test_Value (T : in out Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced  (T);
@@ -226,6 +327,14 @@ package body Z3.Tests is
       Assert (Int (LLU'First).Value = LLU'First, "invalid first unsigned value");
       Assert (Int (LLU'Last).Value = LLU'Last, "invalid last unsigned value");
       Assert_Exception (Negative_Unsigned'Access, "negative unsigned raised no error");
+      Assert (Bv (LLU'(234)).Value = 234, "invalid unsigned bit vector value");
+      Assert (Bv (LLU'(0)).Value = 0, "invalid zero unsigned bit vector value");
+      Assert (Bv (LLU'First).Value = LLU'First, "invalid first unsigned bit vector value");
+      Assert (Bv (LLU'Last).Value = LLU'Last, "invalid last unsigned bit vector value");
+      Assert (Bv (LLI'(234)).Value = 234, "invalid bit vector value");
+      Assert (Bv (LLI'Last).Value = LLU (LLI'Last), "invalid last bit vector value");
+      Assert (Simp (Bv (LLI'(-5)) + Bv (LLU'(13))).Value = 8, "invalid calculated bit vector ");
+      Assert_Exception (Negative_Bit_Vector'Access, "negative bit vector raised no error");
    end Test_Value;
 
    ---------------------------------------------------------------------------
@@ -256,6 +365,16 @@ package body Z3.Tests is
       Expr     := Int (LLI'(1)) + Int ("A") < Int ("B");
       Expected := Int (LLI'(1)) + Int ("C") < Int (LLI'(42));
       Result   := Bool (Substitute (Expr, Int ("A") & Int ("B"), Int ("C") & Int (LLI'(42))));
+      Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
+      Expr     := Bv (LLI'(1)) + Bv ("A") < Bv ("B");
+      Expected := Bv (LLI'(1)) + Bv ("C") < Bv (LLI'(42));
+      Result   := Bool (Substitute (Expr, Bv ("A") & Bv ("B"), Bv ("C") & Bv (LLI'(42))));
+      Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
+      Expr     := Bv (LLI'(1)) < Bv ("A");
+      Expected := Bv (LLI'(1)) < Bv ("B");
+      Result   := Bool (Substitute (Expr, Bv ("A"), Bv ("B")));
+      Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
+      Result   := Bool (Substitute (Expr, Bit_Vector_Array'(1 => Bv ("A")), Bit_Vector_Array'(1 => Bv ("B"))));
       Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
    end Test_Substitute;
 
@@ -336,15 +455,22 @@ package body Z3.Tests is
       pragma Unreferenced (T);
    begin
       Assert (Kind (Bool (True)) = Kind_Constant, "invalid bool constant");
+      Assert (Kind (Bool (False)) = Kind_Constant, "invalid bool constant");
       Assert (Kind (Int (LLU'(1))) = Kind_Constant, "invalid int constant");
+      Assert (Kind (Bv (LLU'(1))) = Kind_Constant, "invalid bit vector constant");
       Assert (Kind (Bool ("A")) = Kind_Var, "invalid bool var " & Kind (Bool ("A"))'Img);
       Assert (Kind (Int ("A")) = Kind_Var, "invalid int var " & Kind (Int ("A"))'Img);
+      Assert (Kind (Bv ("A")) = Kind_Var, "invalid bit vector var" & Kind (Bv ("A"))'Img);
       Assert (Kind (Int ("A") = Int ("B")) = Kind_Equal, "invalid int equal");
       Assert (Kind (Bool ("A") = Bool ("B")) = Kind_Equal, "invalid bool equal");
       Assert (Kind (Int ("A") >= Int ("B")) = Kind_Greater_Equal, "invalid greater equal");
       Assert (Kind (Int ("A") > Int ("B")) = Kind_Greater_Than, "invalid greater than");
       Assert (Kind (Int ("A") <= Int ("B")) = Kind_Less_Equal, "invalid less equal");
       Assert (Kind (Int ("A") < Int ("B")) = Kind_Less_Than, "invalid less than");
+      Assert (Kind (Bv ("A") >= Bv ("B")) = Kind_Greater_Equal, "invalid greater equal");
+      Assert (Kind (Bv ("A") > Bv ("B")) = Kind_Greater_Than, "invalid greater than");
+      Assert (Kind (Bv ("A") <= Bv ("B")) = Kind_Less_Equal, "invalid less equal");
+      Assert (Kind (Bv ("A") < Bv ("B")) = Kind_Less_Than, "invalid less than");
       Assert (Kind (Bool ("A") and Bool ("B")) = Kind_And, "invalid and");
       Assert (Kind (Conjunction (Bool ("A") & Bool ("B") & Bool ("C"))) = Kind_And,
               "invalid conjunction");
@@ -362,6 +488,12 @@ package body Z3.Tests is
       Assert (Kind (Int ("A") / Int ("B")) = Kind_Div, "invalid div");
       Assert (Kind (Int ("A") mod Int ("B")) = Kind_Mod, "invalid mod");
       Assert (Kind (Int ("A") ** Int ("B")) = Kind_Power, "invalid power");
+      Assert (Kind (Bv ("A") + Bv ("B")) = Kind_Add, "invalid add");
+      Assert (Kind (Bv ("A") * Bv ("B")) = Kind_Mul, "invalid mul");
+      Assert (Kind (Bv ("A") - Bv ("B")) = Kind_Sub, "invalid sub");
+      Assert (Kind (Bv ("A") / Bv ("B")) = Kind_Div, "invalid div");
+      Assert (Kind (Bv ("A") mod Bv ("B")) = Kind_Mod, "invalid mod");
+      --  Assert (Kind (Bv ("A") ** Bv ("B")) = Kind_Power, "invalid power");
    end Test_Kind;
 
    ---------------------------------------------------------------------------
@@ -562,6 +694,8 @@ package body Z3.Tests is
       Register_Routine (T, Test_Booleans'Access, "Booleans");
       Register_Routine (T, Test_Integer'Access, "Integer");
       Register_Routine (T, Test_Unsigned'Access, "Unsigned");
+      Register_Routine (T, Test_Bit_Vector'Access, "Bit Vector");
+      Register_Routine (T, Test_Unsigned_Bit_Vector'Access, "Unsigned Bit Vector");
       Register_Routine (T, Test_Solver'Access, "Solver");
       Register_Routine (T, Test_Conflicting_Contexts'Access, "Conflicting contexts");
       Register_Routine (T, Test_String_Representation'Access, "String representation");
