@@ -34,7 +34,7 @@ package Z3 is  --  GCOV_EXCL_LINE
                       Kind_Mod,
                       Kind_Power);
 
-   type Expr_Sort is (Sort_Bool, Sort_Int, Sort_Unknown);
+   type Expr_Sort is (Sort_Bool, Sort_Int, Sort_Bit_Vector, Sort_Unknown);
 
    Default_Context : constant Context;
    function New_Context return Context;
@@ -207,6 +207,108 @@ package Z3 is  --  GCOV_EXCL_LINE
    function ">=" (Left : Int_Type'Class; Right : Int_Type'Class) return Bool_Type with
       Pre => Same_Context (Left, Right);
 
+   type Bit_Vector_Type is new Expr_Type with private;
+   type Bit_Vector_Array is array (Natural range <>) of Bit_Vector_Type;
+
+   function Bit_Vector (Name    : String;
+                        Size    : Natural;
+                        Context : Z3.Context := Default_Context) return Bit_Vector_Type;
+
+   function Bit_Vector (Value   : Long_Long_Unsigned;
+                        Size    : Natural;
+                        Context : Z3.Context := Default_Context) return Bit_Vector_Type with
+      Pre => Size > Value'Size;
+
+   function Bit_Vector (Value   : Long_Long_Integer;
+                        Size    : Natural;
+                        Context : Z3.Context := Default_Context) return Bit_Vector_Type with
+      Pre => Size >= Value'Size;
+
+   function Bit_Vector (Expr : Expr_Type'Class) return Bit_Vector_Type with
+      Pre => Sort (Expr) = Sort_Bit_Vector;
+
+   function Same_Context (Values : Bit_Vector_Array) return Boolean;
+
+   overriding
+   function Simplified (Value : Bit_Vector_Type) return Bit_Vector_Type;
+
+   function Substitute (Expr : Expr_Type'Class;
+                        From : Bit_Vector_Type;
+                        To   : Bit_Vector_Type) return Expr_Type'Class with
+      Pre => Same_Context (Expr, From)
+             and then Same_Context (From, To);
+
+   function Substitute (Expr : Expr_Type'Class;
+                        From : Bit_Vector_Array;
+                        To   : Bit_Vector_Array) return Expr_Type'Class with
+      Pre => From'Length = To'Length
+             and then (if
+                          From'Length > 0
+                       then
+                          Same_Context (Expr, From (From'First))
+                          and then Same_Context (From & To));
+
+   function Value (Data : Bit_Vector_Type) return Long_Long_Unsigned;
+
+   function Size (Value : Bit_Vector_Type) return Natural;
+
+   overriding
+   function "&" (Left, Right : Bit_Vector_Type) return Bit_Vector_Array with
+      Pre => Same_Context (Left, Right);
+
+   --  function Add (Values : Bit_Vector_Array) return Bit_Vector_Type with
+   --     Pre => Same_Context (Values);
+
+   function "+" (Left : Bit_Vector_Type; Right : Bit_Vector_Type) return Bit_Vector_Type with
+      Pre  => Same_Context (Left, Right)
+              and Size (Left) = Size (Right),
+      Post => Size ("+"'Result) = Size (Left);
+
+   function "-" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bit_Vector_Type with
+      Pre  => Same_Context (Left, Right)
+              and Size (Left) = Size (Right),
+      Post => Size ("-"'Result) = Size (Left);
+
+   --  function Mul (Values : Bit_Vector_Array) return Bit_Vector_Type with
+   --     Pre => Same_Context (Values);
+
+   function "*" (Left : Bit_Vector_Type; Right : Bit_Vector_Type) return Bit_Vector_Type with
+      Pre  => Same_Context (Left, Right)
+              and Size (Left) = Size (Right),
+      Post => Size ("*"'Result) = Size (Left);
+
+   function "/" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bit_Vector_Type with
+      Pre  => Same_Context (Left, Right)
+              and Size (Left) = Size (Right),
+      Post => Size ("/"'Result) = Size (Left);
+
+   --  function "**" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bit_Vector_Type with
+   --     Pre => Same_Context (Left, Right);
+
+   function "mod" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bit_Vector_Type with
+      Pre  => Same_Context (Left, Right)
+              and Size (Left) = Size (Right),
+      Post => Size ("mod"'Result) = Size (Left);
+
+   function "-" (Value : Bit_Vector_Type) return Bit_Vector_Type with
+      Post => Size ("-"'Result) = Size (Value);
+
+   function "<" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bool_Type with
+      Pre  => Same_Context (Left, Right)
+              and Size (Left) = Size (Right);
+
+   function "<=" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bool_Type with
+      Pre  => Same_Context (Left, Right)
+              and Size (Left) = Size (Right);
+
+   function ">" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bool_Type with
+      Pre  => Same_Context (Left, Right)
+              and Size (Left) = Size (Right);
+
+   function ">=" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bool_Type with
+      Pre  => Same_Context (Left, Right)
+              and Size (Left) = Size (Right);
+
    --  Solver
    type Solver is tagged limited private;
 
@@ -318,6 +420,8 @@ private
 
    type Int_Type is new Expr_Type with null record;
 
+   type Bit_Vector_Type is new Expr_Type with null record;
+
    type Solver is tagged limited
       record
          Data : z3_api_h.Z3_solver;
@@ -379,6 +483,9 @@ private
    function To_Z3_ast_array (Value : Int_Array) return Z3_ast_array with
       Pre  => Same_Context (Value),
       Post => Value'Length = To_Z3_ast_array'Result'Length;
+   function To_Z3_ast_array (Value : Bit_Vector_Array) return Z3_ast_array with
+      Pre  => Same_Context (Value),
+      Post => Value'Length = To_Z3_ast_array'Result'Length;
 
    Default_Config  : Z3.Config := (Data => z3_api_h.Z3_mk_config);
    Default_Context : constant Context := (Data => z3_api_h.Z3_mk_context (Default_Config.Data));
@@ -394,6 +501,8 @@ private
    function Simplified (Value : Bool_Type) return Bool_Type is (Bool (Expr_Type (Value).Simplified));
    overriding
    function Simplified (Value : Int_Type) return Int_Type is (Int (Expr_Type (Value).Simplified));
+   overriding
+   function Simplified (Value : Bit_Vector_Type) return Bit_Vector_Type is (Bit_Vector (Expr_Type (Value).Simplified));
 
    function Substitute (Expr : Expr_Type'Class;
                         From : Bool_Type;
@@ -405,10 +514,17 @@ private
                         To   : Int_Type) return Expr_Type'Class is
       (Substitute (Expr, Int_Array'(1 => From), Int_Array'(1 => To)));
 
+   function Substitute (Expr : Expr_Type'Class;
+                        From : Bit_Vector_Type;
+                        To   : Bit_Vector_Type) return Expr_Type'Class is
+      (Substitute (Expr, Bit_Vector_Array'(1 => From), Bit_Vector_Array'(1 => To)));
+
    overriding
    function "&" (Left, Right : Bool_Type) return Bool_Array is (Bool_Array'(Left, Right));
    overriding
    function "&" (Left, Right : Int_Type) return Int_Array is (Int_Array'(Left, Right));
+   overriding
+   function "&" (Left, Right : Bit_Vector_Type) return Bit_Vector_Array is (Bit_Vector_Array'(Left, Right));
 
    type Cursor is record
       Expr  : Expr_Type;
