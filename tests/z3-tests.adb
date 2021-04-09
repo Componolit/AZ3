@@ -175,8 +175,6 @@ package body Z3.Tests is
       Assert (Simp (Bv (LLI'(16)) mod Bv (LLI'(8)) = Bv (LLI'(0))) = Bool (True), "16 % 8 != 0");
       Assert (Simp (Bv (LLI'(17)) mod Bv (LLI'(8)) = Bv (LLI'(1))) = Bool (True), "17 % 8 != 1");
       Assert (Simp (-Bv (LLI'(5)) + Bv (LLI'(5)) = Bv (LLI'(0))) = Bool (True), "-5 + 5 != 0");
-      --  Assert (Simp (Bv (LLI'(2)) ** Bv (LLI'(4)) = Bv (LLI'(16))) = Bool (True), "2^4 != 16");
-      --  Assert (Simp (Bv (LLI'(2)) ** Bv (LLI'(0)) = Bv (LLI'(1))) = Bool (True), "2^0 != 1");
       Assert (Simp (Bv (LLI'(2)) < Bv (LLI'(0))) = Bool (False), "2 < 0 != false");
       Assert (Simp (Bv (LLI'(0)) < Bv (LLI'(10))) = Bool (True), "0 < 10 != true");
       Assert (Simp (Bv (LLI'(2)) <= Bv (LLI'(0))) = Bool (False), "2 <= 0 != false");
@@ -215,8 +213,6 @@ package body Z3.Tests is
       Assert (Simp (Bv (LLU'(16)) mod Bv (LLU'(8)) = Bv (LLU'(0))) = Bool (True), "16 % 8 != 0");
       Assert (Simp (Bv (LLU'(17)) mod Bv (LLU'(8)) = Bv (LLU'(1))) = Bool (True), "17 % 8 != 1");
       Assert (Simp (-Bv (LLU'(5)) + Bv (LLU'(5)) = Bv (LLU'(0))) = Bool (True), "-5 + 5 != 0");
-      --  Assert (Simp (Bv (LLU'(2)) ** Bv (LLU'(4)) = Bv (LLU'(16))) = Bool (True), "2^4 != 16");
-      --  Assert (Simp (Bv (LLU'(2)) ** Bv (LLU'(0)) = Bv (LLU'(1))) = Bool (True), "2^0 != 1");
       Assert (Simp (Bv (LLU'(2)) < Bv (LLU'(0))) = Bool (False), "2 < 0 != false");
       Assert (Simp (Bv (LLU'(0)) < Bv (LLU'(10))) = Bool (True), "0 < 10 != true");
       Assert (Simp (Bv (LLU'(2)) <= Bv (LLU'(0))) = Bool (False), "2 <= 0 != false");
@@ -227,6 +223,8 @@ package body Z3.Tests is
       Assert (Simp (Bv (LLU'(0)) >= Bv (LLU'(2))) = Bool (False), "0 >= 2 != false");
       Assert (Simp (Bv (LLU'(10)) >= Bv (LLU'(0))) = Bool (True), "10 >= 0 != true");
       Assert (Simp (Bv (LLU'(3)) >= Bv (LLU'(3))) = Bool (True), "3 >= 3 != true");
+      Assert (Simp (Add (Bv (LLU'(1)) & Bv (LLU'(3)) & Bv (LLI'(-2)))) = Bv (LLU'(2)), "1 + 3 - 2 /= 2");
+      Assert (Simp (Mul (Bv (LLU'(1)) & Bv (LLU'(3)) & Bv (LLI'(4)))) = Bv (LLU'(12)), "1 * 3 * 4 /= 12 ");
    end Test_Unsigned_Bit_Vector;
 
    ---------------------------------------------------------------------------
@@ -493,7 +491,10 @@ package body Z3.Tests is
       Assert (Kind (Bv ("A") - Bv ("B")) = Kind_Sub, "invalid sub");
       Assert (Kind (Bv ("A") / Bv ("B")) = Kind_Div, "invalid div");
       Assert (Kind (Bv ("A") mod Bv ("B")) = Kind_Mod, "invalid mod");
-      --  Assert (Kind (Bv ("A") ** Bv ("B")) = Kind_Power, "invalid power");
+      Assert (Kind (Add (Bv ("A") & Bv ("B") & Bv ("C"))) = Kind_Add,
+              "invalid add (multiple)");
+      Assert (Kind (Mul (Bv ("A") & Bv ("B") & Bv ("C"))) = Kind_Mul,
+              "invalid mul (multiple)");
    end Test_Kind;
 
    ---------------------------------------------------------------------------

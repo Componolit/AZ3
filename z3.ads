@@ -256,8 +256,9 @@ package Z3 is  --  GCOV_EXCL_LINE
    function "&" (Left, Right : Bit_Vector_Type) return Bit_Vector_Array with
       Pre => Same_Context (Left, Right);
 
-   --  function Add (Values : Bit_Vector_Array) return Bit_Vector_Type with
-   --     Pre => Same_Context (Values);
+   function Add (Values : Bit_Vector_Array) return Bit_Vector_Type with
+      Pre => Values'Length > 0
+             and then Same_Context (Values);
 
    function "+" (Left : Bit_Vector_Type; Right : Bit_Vector_Type) return Bit_Vector_Type with
       Pre  => Same_Context (Left, Right)
@@ -269,8 +270,9 @@ package Z3 is  --  GCOV_EXCL_LINE
               and Size (Left) = Size (Right),
       Post => Size ("-"'Result) = Size (Left);
 
-   --  function Mul (Values : Bit_Vector_Array) return Bit_Vector_Type with
-   --     Pre => Same_Context (Values);
+   function Mul (Values : Bit_Vector_Array) return Bit_Vector_Type with
+      Pre => Values'Length > 0
+             and then Same_Context (Values);
 
    function "*" (Left : Bit_Vector_Type; Right : Bit_Vector_Type) return Bit_Vector_Type with
       Pre  => Same_Context (Left, Right)
@@ -281,9 +283,6 @@ package Z3 is  --  GCOV_EXCL_LINE
       Pre  => Same_Context (Left, Right)
               and Size (Left) = Size (Right),
       Post => Size ("/"'Result) = Size (Left);
-
-   --  function "**" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bit_Vector_Type with
-   --     Pre => Same_Context (Left, Right);
 
    function "mod" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bit_Vector_Type with
       Pre  => Same_Context (Left, Right)

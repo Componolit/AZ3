@@ -982,6 +982,18 @@ is
 
    ------------------------------------------------------------------------------------------------
 
+   function Add (Values : Bit_Vector_Array) return Bit_Vector_Type
+   is
+      Result : Bit_Vector_Type := Values (Values'First);
+   begin
+      for I in Values'First + 1 .. Values'Last loop
+         Result := Result + Values (I);
+      end loop;
+      return Result;
+   end Add;
+
+   ------------------------------------------------------------------------------------------------
+
    function "+" (Left : Bit_Vector_Type; Right : Bit_Vector_Type) return Bit_Vector_Type
    is
    begin
@@ -1001,6 +1013,18 @@ is
                                                t2 => Right.Data),
               Context => Left.Context);
    end "-";
+
+   ------------------------------------------------------------------------------------------------
+
+   function Mul (Values : Bit_Vector_Array) return Bit_Vector_Type
+   is
+      Result : Bit_Vector_Type := Values (Values'First);
+   begin
+      for I in Values'First + 1 .. Values'Last loop
+         Result := Result * Values (I);
+      end loop;
+      return Result;
+   end Mul;
 
    ------------------------------------------------------------------------------------------------
 
