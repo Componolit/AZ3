@@ -916,6 +916,18 @@ is
 
    ------------------------------------------------------------------------------------------------
 
+   function Bit_Vector (Value : Int_Type'Class;
+                        Size  : Natural) return Bit_Vector_Type
+   is
+   begin
+      return Simplified ((Data    => z3_api_h.Z3_mk_int2bv (c  => Value.Context.Data,
+                                                n  => Interfaces.C.unsigned (Size),
+                                                t1 => Value.Data),
+                          Context => Value.Context));
+   end Bit_Vector;
+
+   ------------------------------------------------------------------------------------------------
+
    function Bit_Vector (Expr : Expr_Type'Class) return Bit_Vector_Type is
       (Data    => Expr.Data,
        Context => Expr.Context);
