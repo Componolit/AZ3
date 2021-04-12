@@ -698,7 +698,7 @@ is
    ------------------------------------------------------------------------------------------------
 
    procedure Minimize (Optimize : in out Z3.Optimize;
-                       Term     :        Z3.Int_Type'Class)
+                       Term     :        Z3.Arith_Type'Class)
    is
       Index : Interfaces.C.unsigned;
    begin
@@ -709,7 +709,7 @@ is
    ------------------------------------------------------------------------------------------------
 
    procedure Maximize (Optimize : in out Z3.Optimize;
-                       Term     :        Z3.Int_Type'Class)
+                       Term     :        Z3.Arith_Type'Class)
    is
       Index : Interfaces.C.unsigned;
    begin
@@ -737,7 +737,7 @@ is
    ------------------------------------------------------------------------------------------------
 
    function Lower (Optimize  : Z3.Optimize;
-                   Objective : Z3.Int_Type'Class) return Z3.Int_Type'Class
+                   Objective : Z3.Arith_Type'Class) return Z3.Int_Type'Class
    is
    begin
       return Z3.Int_Type'(Data    => z3_optimization_h.Z3_optimize_get_lower (Optimize.Context.Data,
@@ -749,7 +749,7 @@ is
    ------------------------------------------------------------------------------------------------
 
    function Upper (Optimize  : Z3.Optimize;
-                   Objective : Z3.Int_Type'Class) return Z3.Int_Type'Class
+                   Objective : Z3.Arith_Type'Class) return Z3.Int_Type'Class
    is
    begin
       return Z3.Int_Type'(Data    => z3_optimization_h.Z3_optimize_get_upper (Optimize.Context.Data,
@@ -760,7 +760,7 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Hash (Key : Z3.Int_Type'Class) return Ada.Containers.Hash_Type is (Ada.Strings.Hash (+Key));
+   function Hash (Key : Z3.Arith_Type'Class) return Ada.Containers.Hash_Type is (Ada.Strings.Hash (+Key));
 
    ------------------------------------------------------------------------------------------------
 

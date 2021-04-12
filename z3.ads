@@ -125,8 +125,10 @@ package Z3 is  --  GCOV_EXCL_LINE
    function "or" (Left, Right : Bool_Type) return Bool_Type with
       Pre => Same_Context (Left, Right);
 
+   type Arith_Type is new Expr_Type with private;
+
    --  Integer expressions
-   type Int_Type is new Expr_Type with private;
+   type Int_Type is new Arith_Type with private;
    type Int_Array is array (Natural range <>) of Int_Type;
 
    function Int (Name : String; Context : Z3.Context := Default_Context) return Int_Type;
@@ -207,7 +209,7 @@ package Z3 is  --  GCOV_EXCL_LINE
    function ">=" (Left : Int_Type'Class; Right : Int_Type'Class) return Bool_Type with
       Pre => Same_Context (Left, Right);
 
-   type Bit_Vector_Type is new Expr_Type with private;
+   type Bit_Vector_Type is new Arith_Type with private;
    type Bit_Vector_Array is array (Natural range <>) of Bit_Vector_Type;
 
    function Bit_Vector (Name    : String;
@@ -379,21 +381,21 @@ package Z3 is  --  GCOV_EXCL_LINE
       Pre => Same_Context (Optimize, Fact);
 
    procedure Minimize (Optimize : in out Z3.Optimize;
-                       Term     :        Z3.Int_Type'Class) with
+                       Term     :        Z3.Arith_Type'Class) with
       Pre => Same_Context (Optimize, Term);
 
    procedure Maximize (Optimize : in out Z3.Optimize;
-                       Term     :        Z3.Int_Type'Class) with
+                       Term     :        Z3.Arith_Type'Class) with
       Pre => Same_Context (Optimize, Term);
 
    procedure Check (Optimize : in out Z3.Optimize;
                     Result   :    out Z3.Result);
 
    function Lower (Optimize  : Z3.Optimize;
-                   Objective : Z3.Int_Type'Class) return Z3.Int_Type'Class;
+                   Objective : Z3.Arith_Type'Class) return Z3.Int_Type'Class;
 
    function Upper (Optimize  : Z3.Optimize;
-                   Objective : Z3.Int_Type'Class) return Z3.Int_Type'Class;
+                   Objective : Z3.Arith_Type'Class) return Z3.Int_Type'Class;
 
    procedure Reset (Optimize : in out Z3.Optimize);
 
@@ -417,9 +419,11 @@ private
 
    type Bool_Type is new Expr_Type with null record;
 
-   type Int_Type is new Expr_Type with null record;
+   type Arith_Type is new Expr_Type with null record;
 
-   type Bit_Vector_Type is new Expr_Type with null record;
+   type Int_Type is new Arith_Type with null record;
+
+   type Bit_Vector_Type is new Arith_Type with null record;
 
    type Solver is tagged limited
       record
@@ -464,11 +468,11 @@ private
 
    type Z3_ast_array is array (Natural range <>) of z3_api_h.Z3_ast;
 
-   function Hash (Key : Z3.Int_Type'Class) return Ada.Containers.Hash_Type;
+   function Hash (Key : Z3.Arith_Type'Class) return Ada.Containers.Hash_Type;
 
    use type Interfaces.C.unsigned;
    package Int_Maps is new Ada.Containers.Indefinite_Hashed_Maps
-      (Z3.Int_Type'Class, Interfaces.C.unsigned, Hash, "=");
+      (Z3.Arith_Type'Class, Interfaces.C.unsigned, Hash, "=");
 
    type Optimize is tagged limited record
       Data       : z3_api_h.Z3_optimize;
