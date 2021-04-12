@@ -31,6 +31,9 @@ package body Z3.Tests is
    function Bv (V : String) return Bit_Vector_Type is
       (Bit_Vector (V, 65));
 
+   function Bv (V : Int_Type'Class) return Bit_Vector_Type is
+      (Bit_Vector (V, 65));
+
    ---------------------------------------------------------------------------
 
    procedure Test_Set_Param_Value (T : in out Test_Cases.Test_Case'Class)
@@ -185,6 +188,7 @@ package body Z3.Tests is
       Assert (Simp (Bv (LLI'(0)) >= Bv (LLI'(2))) = Bool (False), "0 >= 2 != false");
       Assert (Simp (Bv (LLI'(10)) >= Bv (LLI'(0))) = Bool (True), "10 >= 0 != true");
       Assert (Simp (Bv (LLI'(3)) >= Bv (LLI'(3))) = Bool (True), "3 >= 3 != true");
+      Assert (Bv (Int (LLI'(20))) = Bv (LLI'(20)), "Invalid bit vector conversion from int");
    end Test_Bit_Vector;
 
    ---------------------------------------------------------------------------
@@ -225,6 +229,7 @@ package body Z3.Tests is
       Assert (Simp (Bv (LLU'(3)) >= Bv (LLU'(3))) = Bool (True), "3 >= 3 != true");
       Assert (Simp (Add (Bv (LLU'(1)) & Bv (LLU'(3)) & Bv (LLI'(-2)))) = Bv (LLU'(2)), "1 + 3 - 2 /= 2");
       Assert (Simp (Mul (Bv (LLU'(1)) & Bv (LLU'(3)) & Bv (LLI'(4)))) = Bv (LLU'(12)), "1 * 3 * 4 /= 12 ");
+      Assert (Bv (Int (LLU'(20))) = Bv (LLU'(20)), "Invalid bit vector conversion from int");
    end Test_Unsigned_Bit_Vector;
 
    ---------------------------------------------------------------------------

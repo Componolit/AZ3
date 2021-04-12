@@ -226,6 +226,9 @@ package Z3 is  --  GCOV_EXCL_LINE
                         Context : Z3.Context := Default_Context) return Bit_Vector_Type with
       Pre => Size >= Value'Size;
 
+   function Bit_Vector (Value : Int_Type'Class;
+                        Size  : Natural) return Bit_Vector_Type;
+
    function Bit_Vector (Expr : Expr_Type'Class) return Bit_Vector_Type with
       Pre => Sort (Expr) = Sort_Bit_Vector;
 
