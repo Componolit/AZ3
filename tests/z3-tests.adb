@@ -521,8 +521,10 @@ package body Z3.Tests is
       Optimize.Maximize (Int ("B"));
       Optimize.Check (Result);
       Assert (Result = Result_True, "Optimize not sat");
-      Assert (Int_Type (Optimize.Lower (Int ("A"))) = Int (LLU'(10)), "Invalid lower");
-      Assert (Int_Type (Optimize.Upper (Int ("B"))) = Int (LLU'(42)), "Invalid upper");
+      Assert (Sort (Optimize.Lower (Int ("A"))) = Sort_Int, "Invalid sort");
+      Assert (Sort (Optimize.Upper (Int ("B"))) = Sort_Int, "Invalid sort");
+      Assert (Int (Optimize.Lower (Int ("A"))) = Int (LLU'(10)), "Invalid lower");
+      Assert (Int (Optimize.Upper (Int ("B"))) = Int (LLU'(42)), "Invalid upper");
       Optimize.Assert (Int ("C") > Int (LLU'(100)));
       Optimize.Maximize (Int ("C"));
       Optimize.Check (Result);
@@ -534,6 +536,15 @@ package body Z3.Tests is
       Optimize.Check (Result);
       Assert (Result = Result_True, "Optimize not sat ");
       Assert (Kind (Optimize.Upper (Int ("C"))) /= Kind_Constant, "Invalid constant result");
+      Optimize.Reset;
+      Optimize.Assert ((Bv ("A") >= Bv (LLU'(10)))
+                       and (Bv ("A") < Bv (LLU'(50))));
+      Optimize.Minimize (Bv ("A"));
+      Optimize.Check (Result);
+      Assert (Result = Result_True, "Optimize not sat");
+      Assert (Sort (Optimize.Lower (Bv ("A"))) = Sort_Int,
+              "Invalid sort " & Sort (Optimize.Lower (Bv ("A")))'Img);
+      Assert (Int (Optimize.Lower (Bv ("A"))) = Int (LLU'(10)), "Invalid lower");
    end Test_Optimize;
 
    ---------------------------------------------------------------------------
