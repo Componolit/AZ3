@@ -282,7 +282,7 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function "-" (Left : Int_Type'Class; Right : Int_Type'Class) return Int_Type
+   function "-" (Left : Int_Type; Right : Int_Type) return Int_Type
    is
       type Int_Array is array (1 .. 2) of z3_api_h.Z3_ast;
       Args : constant Int_Array := (Left.Data, Right.Data);
@@ -295,7 +295,7 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function "/" (Left : Int_Type'Class; Right : Int_Type'Class) return Int_Type
+   function "/" (Left : Int_Type; Right : Int_Type) return Int_Type
    is
    begin
       return (Data    => z3_api_h.Z3_mk_div (c    => Left.Context.Data,
@@ -306,7 +306,7 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function "**" (Left : Int_Type'Class; Right : Int_Type'Class) return Int_Type
+   function "**" (Left : Int_Type; Right : Int_Type) return Int_Type
    is
    begin
       return (Data    => z3_api_h.Z3_mk_power (c    => Left.Context.Data,
@@ -317,7 +317,7 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function "mod" (Left : Int_Type'Class; Right : Int_Type'Class) return Int_Type
+   function "mod" (Left : Int_Type; Right : Int_Type) return Int_Type
    is
    begin
       return (Data    => z3_api_h.Z3_mk_mod (c    => Left.Context.Data,
@@ -1017,7 +1017,7 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function "-" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bit_Vector_Type
+   function "-" (Left : Bit_Vector_Type; Right : Bit_Vector_Type) return Bit_Vector_Type
    is
    begin
       return (Data    => z3_api_h.Z3_mk_bvsub (c  => Left.Context.Data,
@@ -1051,7 +1051,7 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function "/" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bit_Vector_Type
+   function "/" (Left : Bit_Vector_Type; Right : Bit_Vector_Type) return Bit_Vector_Type
    is
    begin
       return (Data    => z3_api_h.Z3_mk_bvsdiv (c  => Left.Context.Data,
@@ -1062,7 +1062,7 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function "mod" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bit_Vector_Type
+   function "mod" (Left : Bit_Vector_Type; Right : Bit_Vector_Type) return Bit_Vector_Type
    is
    begin
       return (Data    => z3_api_h.Z3_mk_bvsmod (c  => Left.Context.Data,
