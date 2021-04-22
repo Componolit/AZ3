@@ -177,7 +177,7 @@ package Z3 is  --  GCOV_EXCL_LINE
    function "+" (Left : Int_Type; Right : Int_Type) return Int_Type with
       Pre => Same_Context (Left, Right);
 
-   function "-" (Left : Int_Type'Class; Right : Int_Type'Class) return Int_Type with
+   function "-" (Left : Int_Type; Right : Int_Type) return Int_Type with
       Pre => Same_Context (Left, Right);
 
    function Mul (Values : Int_Array) return Int_Type with
@@ -186,13 +186,13 @@ package Z3 is  --  GCOV_EXCL_LINE
    function "*" (Left : Int_Type; Right : Int_Type) return Int_Type with
       Pre => Same_Context (Left, Right);
 
-   function "/" (Left : Int_Type'Class; Right : Int_Type'Class) return Int_Type with
+   function "/" (Left : Int_Type; Right : Int_Type) return Int_Type with
       Pre => Same_Context (Left, Right);
 
-   function "**" (Left : Int_Type'Class; Right : Int_Type'Class) return Int_Type with
+   function "**" (Left : Int_Type; Right : Int_Type) return Int_Type with
       Pre => Same_Context (Left, Right);
 
-   function "mod" (Left : Int_Type'Class; Right : Int_Type'Class) return Int_Type with
+   function "mod" (Left : Int_Type; Right : Int_Type) return Int_Type with
       Pre => Same_Context (Left, Right);
 
    function "-" (Value : Int_Type) return Int_Type;
@@ -270,7 +270,7 @@ package Z3 is  --  GCOV_EXCL_LINE
               and Size (Left) = Size (Right),
       Post => Size ("+"'Result) = Size (Left);
 
-   function "-" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bit_Vector_Type with
+   function "-" (Left : Bit_Vector_Type; Right : Bit_Vector_Type) return Bit_Vector_Type with
       Pre  => Same_Context (Left, Right)
               and Size (Left) = Size (Right),
       Post => Size ("-"'Result) = Size (Left);
@@ -284,12 +284,12 @@ package Z3 is  --  GCOV_EXCL_LINE
               and Size (Left) = Size (Right),
       Post => Size ("*"'Result) = Size (Left);
 
-   function "/" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bit_Vector_Type with
+   function "/" (Left : Bit_Vector_Type; Right : Bit_Vector_Type) return Bit_Vector_Type with
       Pre  => Same_Context (Left, Right)
               and Size (Left) = Size (Right),
       Post => Size ("/"'Result) = Size (Left);
 
-   function "mod" (Left : Bit_Vector_Type'Class; Right : Bit_Vector_Type'Class) return Bit_Vector_Type with
+   function "mod" (Left : Bit_Vector_Type; Right : Bit_Vector_Type) return Bit_Vector_Type with
       Pre  => Same_Context (Left, Right)
               and Size (Left) = Size (Right),
       Post => Size ("mod"'Result) = Size (Left);
