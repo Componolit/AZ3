@@ -402,6 +402,10 @@ package Z3 is  --  GCOV_EXCL_LINE
 
    procedure Reset (Optimize : in out Z3.Optimize);
 
+   procedure Push (Optimize : in out Z3.Optimize);
+
+   procedure Pop (Optimize : in out Z3.Optimize);
+
 private
 
    type Config is
@@ -473,14 +477,20 @@ private
 
    function Hash (Key : Z3.Arith_Type'Class) return Ada.Containers.Hash_Type;
 
+   type Objective_Data is record
+      Index              : Interfaces.C.unsigned;
+      Backtracking_Point : Natural;
+   end record;
+
    use type Interfaces.C.unsigned;
    package Int_Maps is new Ada.Containers.Indefinite_Hashed_Maps
-      (Z3.Arith_Type'Class, Interfaces.C.unsigned, Hash, "=");
+      (Z3.Arith_Type'Class, Objective_Data, Hash, "=");
 
    type Optimize is tagged limited record
-      Data       : z3_api_h.Z3_optimize;
-      Context    : Z3.Context;
-      Objectives : Int_Maps.Map;
+      Data               : z3_api_h.Z3_optimize;
+      Context            : Z3.Context;
+      Objectives         : Int_Maps.Map;
+      Backtracking_Count : Natural;
    end record;
 
    function To_Z3_ast_array (Value : Bool_Array) return Z3_ast_array with

@@ -19,4 +19,8 @@ project Tests is
       for Default_Switches ("Ada") use ("-lgcov", "-lz3");
    end Linker;
 
+   package Binder is
+      for Default_Switches ("Ada") use ("-E");
+   end Binder;
+
 end Tests;
