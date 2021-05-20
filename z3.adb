@@ -659,9 +659,10 @@ is
       --  ISSUE: Componolit/AZ3#9
       z3_optimization_h.Z3_optimize_inc_ref (Context.Data, Opt);
       z3_optimization_h.Z3_optimize_push (Context.Data, Opt);
-      return Optimize'(Data       => Opt,
-                       Context    => Context,
-                       Objectives => Int_Maps.Empty_Map);
+      return Optimize'(Data               => Opt,
+                       Context            => Context,
+                       Objectives         => Int_Maps.Empty_Map,
+                       Backtracking_Count => 0);
    end Create;
 
    ------------------------------------------------------------------------------------------------
@@ -703,7 +704,7 @@ is
       Index : Interfaces.C.unsigned;
    begin
       Index := z3_optimization_h.Z3_optimize_minimize (Optimize.Context.Data, Optimize.Data, Term.Data);
-      Optimize.Objectives.Insert (Term, Index);
+      Optimize.Objectives.Insert (Term, (Index, Optimize.Backtracking_Count));
    end Minimize;
 
    ------------------------------------------------------------------------------------------------
@@ -714,7 +715,7 @@ is
       Index : Interfaces.C.unsigned;
    begin
       Index := z3_optimization_h.Z3_optimize_maximize (Optimize.Context.Data, Optimize.Data, Term.Data);
-      Optimize.Objectives.Insert (Term, Index);
+      Optimize.Objectives.Insert (Term, (Index, Optimize.Backtracking_Count));
    end Maximize;
 
    ------------------------------------------------------------------------------------------------
@@ -742,7 +743,7 @@ is
    begin
       return Z3.Int_Type'(Data    => z3_optimization_h.Z3_optimize_get_lower (Optimize.Context.Data,
                                                                               Optimize.Data,
-                                                                              Optimize.Objectives (Objective)),
+                                                                              Optimize.Objectives (Objective).Index),
                           Context => Optimize.Context);
    end Lower;
 
@@ -754,7 +755,7 @@ is
    begin
       return Z3.Int_Type'(Data    => z3_optimization_h.Z3_optimize_get_upper (Optimize.Context.Data,
                                                                               Optimize.Data,
-                                                                              Optimize.Objectives (Objective)),
+                                                                              Optimize.Objectives (Objective).Index),
                           Context => Optimize.Context);
    end Upper;
 
@@ -767,10 +768,40 @@ is
    procedure Reset (Optimize : in out Z3.Optimize)
    is
    begin
-      z3_optimization_h.Z3_optimize_pop (Optimize.Context.Data, Optimize.Data);
+      for I in 0 .. Optimize.Backtracking_Count loop
+         z3_optimization_h.Z3_optimize_pop (Optimize.Context.Data, Optimize.Data);
+      end loop;
+      Optimize.Backtracking_Count := 0;
       z3_optimization_h.Z3_optimize_push (Optimize.Context.Data, Optimize.Data);
       Optimize.Objectives := Int_Maps.Empty_Map;
    end Reset;
+
+   ------------------------------------------------------------------------------------------------
+
+   procedure Push (Optimize : in out Z3.Optimize)
+   is
+   begin
+      z3_optimization_h.Z3_optimize_push (Optimize.Context.Data, Optimize.Data);
+      Optimize.Backtracking_Count := Optimize.Backtracking_Count + 1;
+   end Push;
+
+   ------------------------------------------------------------------------------------------------
+
+   procedure Pop (Optimize : in out Z3.Optimize)
+   is
+      Objectives : constant Int_Maps.Map := Optimize.Objectives;
+   begin
+      if Optimize.Backtracking_Count < 1 then
+         raise Z3.Value_Error;
+      end if;
+      z3_optimization_h.Z3_optimize_pop (Optimize.Context.Data, Optimize.Data);
+      Optimize.Backtracking_Count := Optimize.Backtracking_Count - 1;
+      for C in Objectives.Iterate loop
+         if Int_Maps.Element (C).Backtracking_Point > Optimize.Backtracking_Count then
+            Optimize.Objectives.Delete (Int_Maps.Key (C));
+         end if;
+      end loop;
+   end Pop;
 
    ------------------------------------------------------------------------------------------------
 

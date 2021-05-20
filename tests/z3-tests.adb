@@ -554,6 +554,40 @@ package body Z3.Tests is
 
    ---------------------------------------------------------------------------
 
+   procedure Optimize_Invalid_Pop
+   is
+      Optimize : Z3.Optimize := Create;
+   begin
+      Optimize.Push;
+      Optimize.Pop;
+      Optimize.Pop;
+   end Optimize_Invalid_Pop;
+
+   procedure Test_Optimize_Backtrack (T : in out Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      Optimize : Z3.Optimize := Create;
+      Result   : Z3.Result;
+   begin
+      Optimize.Assert (Int ("X") < Int (LLU'(100)));
+      Optimize.Push;
+      Optimize.Assert (Int ("X") < Int (LLU'(20)));
+      Optimize.Maximize (Int ("X"));
+      Optimize.Check (Result);
+      Assert (Result = Result_True, "Invalid result");
+      Assert (Optimize.Upper (Int ("X")) = Int (LLU'(19)), "Invalid optimize value");
+      Optimize.Pop;
+      Optimize.Maximize (Int ("X"));
+      Optimize.Check (Result);
+      Assert (Result = Result_True, "Invalid result");
+      Assert (Optimize.Upper (Int ("X")) = Int (LLU'(99)), "Invalid optimize value");
+      Optimize.Push;
+      Optimize.Reset;
+      Assert_Exception (Optimize_Invalid_Pop'Access, "Too many pops not detected");
+   end Test_Optimize_Backtrack;
+
+   ---------------------------------------------------------------------------
+
    procedure Invalid_Bool
    is
       B      : constant Expr_Type'Class := Bool ("B");
@@ -721,6 +755,7 @@ package body Z3.Tests is
       Register_Routine (T, Test_Terms'Access, "Terms");
       Register_Routine (T, Test_Kind'Access, "Kind");
       Register_Routine (T, Test_Optimize'Access, "Optimize");
+      Register_Routine (T, Test_Optimize_Backtrack'Access, "Optimize Backtrack");
       Register_Routine (T, Test_Sort'Access, "Sort");
       Register_Routine (T, Test_Big_Int'Access, "Big Integer");
       Register_Routine (T, Test_Logic'Access, "Logic");
