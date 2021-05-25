@@ -805,6 +805,39 @@ is
 
    ------------------------------------------------------------------------------------------------
 
+   function Get_Number_Of_Values (Optimize : Z3.Optimize) return Natural is
+      (Natural (z3_api_h.Z3_model_get_num_consts (Optimize.Context.Data,
+                                                  z3_optimization_h.Z3_optimize_get_model (Optimize.Context.Data,
+                                                                                           Optimize.Data))));
+
+   ------------------------------------------------------------------------------------------------
+
+   procedure Get_Values (Optimize  :     Z3.Optimize;
+                         Constants : out Int_Array;
+                         Values    : out Int_Array)
+   is
+      Model : constant z3_api_h.Z3_model :=
+         z3_optimization_h.Z3_optimize_get_model (Optimize.Context.Data, Optimize.Data);
+      Func_Decl : z3_api_h.Z3_func_decl;
+   begin
+      for I in 0 .. Interfaces.C.unsigned (Constants'Length - 1) loop
+         Func_Decl := z3_api_h.Z3_model_get_const_decl (Optimize.Context.Data, Model, I);
+         Constants (Constants'First + Natural (I)) :=
+            Int_Type'(Data    => z3_api_h.Z3_mk_app (Optimize.Context.Data,
+                                                     Func_Decl,
+                                                     0,
+                                                     System.Null_Address),
+                      Context => Optimize.Context);
+         Values (Values'First + Natural (I)) :=
+            Int_Type'(Data    => z3_api_h.Z3_model_get_const_interp (Optimize.Context.Data,
+                                                                     Model,
+                                                                     Func_Decl),
+                      Context => Optimize.Context);
+      end loop;
+   end Get_Values;
+
+   ------------------------------------------------------------------------------------------------
+
    function Term (Pos : Cursor) return Expr_Type'Class is (Pos.Expr.Term (Pos.Index));
 
    ------------------------------------------------------------------------------------------------

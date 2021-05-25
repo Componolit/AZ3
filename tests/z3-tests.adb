@@ -588,6 +588,35 @@ package body Z3.Tests is
 
    ---------------------------------------------------------------------------
 
+   procedure Test_Optimize_Multiple_Values (T : in out Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      Optimize           : Z3.Optimize        := Create;
+      Result             : Z3.Result;
+      Objective          : constant Int_Type  := Int ("A") - Int ("B");
+      Expected_Constants : constant Int_Array := Int ("A") & Int ("B");
+      Expected_Values    : constant Int_Array := Int (LLU'(99)) & Int (LLU'(11));
+   begin
+      Optimize.Assert (Int ("A") > Int ("B"));
+      Optimize.Assert (Int ("B") > Int (LLU'(10)));
+      Optimize.Assert (Int ("A") < Int (LLU'(100)));
+      Optimize.Maximize (Objective);
+      Optimize.Check (Result);
+      Assert (Result = Result_True, "Invalid result");
+      Assert (Optimize.Upper (Objective) = Int (LLU'(88)), "Invalid maximiize value");
+      declare
+         Constant_Count : constant Natural := Optimize.Get_Number_Of_Values;
+         Constants      : Int_Array (1 .. Constant_Count);
+         Values         : Int_Array (1 .. Constant_Count);
+      begin
+         Optimize.Get_Values (Constants, Values);
+         Assert (Constants = Expected_Constants, "Invalid constants");
+         Assert (Values = Expected_Values, "Invalid values");
+      end;
+   end Test_Optimize_Multiple_Values;
+
+   ---------------------------------------------------------------------------
+
    procedure Invalid_Bool
    is
       B      : constant Expr_Type'Class := Bool ("B");
@@ -756,6 +785,7 @@ package body Z3.Tests is
       Register_Routine (T, Test_Kind'Access, "Kind");
       Register_Routine (T, Test_Optimize'Access, "Optimize");
       Register_Routine (T, Test_Optimize_Backtrack'Access, "Optimize Backtrack");
+      Register_Routine (T, Test_Optimize_Multiple_Values'Access, "Optimize Multiple Values");
       Register_Routine (T, Test_Sort'Access, "Sort");
       Register_Routine (T, Test_Big_Int'Access, "Big Integer");
       Register_Routine (T, Test_Logic'Access, "Logic");
