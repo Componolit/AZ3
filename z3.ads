@@ -406,6 +406,14 @@ package Z3 is  --  GCOV_EXCL_LINE
 
    procedure Pop (Optimize : in out Z3.Optimize);
 
+   function Get_Number_Of_Values (Optimize : Z3.Optimize) return Natural;
+
+   procedure Get_Values (Optimize  :     Z3.Optimize;
+                         Constants : out Int_Array;
+                         Values    : out Int_Array) with
+      Pre => Constants'Length = Get_Number_Of_Values (Optimize)
+             and then Values'Length = Get_Number_Of_Values (Optimize);
+
 private
 
    type Config is
