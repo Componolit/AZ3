@@ -617,6 +617,25 @@ package body Z3.Tests is
 
    ---------------------------------------------------------------------------
 
+   procedure Test_Optimize_String (T : in out Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      Optimize        : Z3.Optimize := Create;
+      Ignore_Result   : Z3.Result;
+      Image           : constant String :=
+         "(declare-fun X () Int)" & ASCII.LF
+         & "(assert (< X 100))" & ASCII.LF
+         & "(maximize X)" & ASCII.LF
+         & "(check-sat)" & ASCII.LF;
+   begin
+      Optimize.Assert (Int ("X") < Int (LLU'(100)));
+      Optimize.Maximize (Int ("X"));
+      Optimize.Check (Ignore_Result);
+      Assert ("+" (Optimize), Image, "Invalid image");
+   end Test_Optimize_String;
+
+   ---------------------------------------------------------------------------
+
    procedure Invalid_Bool
    is
       B      : constant Expr_Type'Class := Bool ("B");
@@ -786,6 +805,7 @@ package body Z3.Tests is
       Register_Routine (T, Test_Optimize'Access, "Optimize");
       Register_Routine (T, Test_Optimize_Backtrack'Access, "Optimize Backtrack");
       Register_Routine (T, Test_Optimize_Multiple_Values'Access, "Optimize Multiple Values");
+      Register_Routine (T, Test_Optimize_String'Access, "Optimize String");
       Register_Routine (T, Test_Sort'Access, "Sort");
       Register_Routine (T, Test_Big_Int'Access, "Big Integer");
       Register_Routine (T, Test_Logic'Access, "Logic");
