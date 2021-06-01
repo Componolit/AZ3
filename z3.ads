@@ -371,6 +371,8 @@ package Z3 is  --  GCOV_EXCL_LINE
 
    type Optimize is tagged limited private;
 
+   function "+" (Optimize : Z3.Optimize) return String;
+
    function Create (Context : Z3.Context := Default_Context) return Optimize;
 
    procedure Set_Timeout (Optimize : in out Z3.Optimize;

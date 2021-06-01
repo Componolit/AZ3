@@ -665,6 +665,13 @@ is
                        Backtracking_Count => 0);
    end Create;
 
+   function "+" (Optimize : Z3.Optimize) return String
+   is
+   begin
+      return ICS.Value (chars_ptr (z3_optimization_h.Z3_optimize_to_string (c => Optimize.Context.Data,
+                                                                            o => Optimize.Data)));
+   end "+";
+
    ------------------------------------------------------------------------------------------------
 
    procedure Set_Timeout (Optimize : in out Z3.Optimize;
