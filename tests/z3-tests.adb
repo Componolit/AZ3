@@ -379,6 +379,12 @@ package body Z3.Tests is
       Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
       Result   := Bool (Substitute (Expr, Bit_Vector_Array'(1 => Bv ("A")), Bit_Vector_Array'(1 => Bv ("B"))));
       Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
+      Expr     := Bool ("A");
+      Expected := Bool ("A");
+      Result   := Bool (Substitute (Expr, Int_Array'(1 .. 0 => <>), Int_Array'(1 .. 0 => <>)));
+      Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
+      Result   := Bool (Substitute (Expr, Bit_Vector_Array'(1 .. 0 => <>), Bit_Vector_Array'(1 .. 0 => <>)));
+      Assert (Result = Expected, "subsitute failed: " & "+"(Result) & " /= " & "+"(Expected));
    end Test_Substitute;
 
    ---------------------------------------------------------------------------
@@ -612,7 +618,7 @@ package body Z3.Tests is
          Optimize.Get_Values (Constants, Values);
          Assert (Constants = Expected_Constants, "Invalid constants");
          Assert (Values = Expected_Values, "Invalid values");
-      end;
+      end;  --  GCOV_EXCL_LINE
    end Test_Optimize_Multiple_Values;
 
    ---------------------------------------------------------------------------
