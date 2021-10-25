@@ -27,7 +27,9 @@ jobs:
     - name: Cache Z3
       uses: actions/cache@v2
       with:
-          path: z3/z3/build/libz3.so
+          path: |
+              z3/z3/build/libz3.so
+              z3/z3/build/Makefile
           key: ${{ hashFiles('z3/z3/CMakeLists.txt') }}
     - name: Test
       run: |
