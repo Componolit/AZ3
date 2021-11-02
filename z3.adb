@@ -21,16 +21,37 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Bool (Name : String; Context : Z3.Context := Default_Context) return Bool_Type
+   function Convert_Bool (Value : z3_api_h.Z3_lbool) return Result is
+      (case Value is
+         when z3_api_h.Z3_L_FALSE => Result_False,
+         when z3_api_h.Z3_L_TRUE  => Result_True,
+         when z3_api_h.Z3_L_UNDEF => Result_Undef,
+         when others => raise Z3.Internal_Error);  --  GCOV_EXCL_LINE
+
+   ------------------------------------------------------------------------------------------------
+
+   function Const (Name    : String;
+                   Sort    : z3_api_h.Z3_sort;
+                   Context : z3_api_h.Z3_context) return z3_api_h.Z3_ast
    is
       C_Name : constant chars_ptr := New_String (Name);
       Symbol : constant z3_api_h.Z3_symbol :=
-         z3_api_h.Z3_mk_string_symbol (c => Context.Data,
+         z3_api_h.Z3_mk_string_symbol (c => Context,
                                        s => z3_api_h.Z3_string (C_Name));
    begin
-      return (Data    => z3_api_h.Z3_mk_const (c  => Context.Data,
-                                               s  => Symbol,
-                                               ty => z3_api_h.Z3_mk_bool_sort (Context.Data)),
+      return z3_api_h.Z3_mk_const (c  => Context,
+                                   s  => Symbol,
+                                   ty => Sort);
+   end Const;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Bool (Name : String; Context : Z3.Context := Default_Context) return Bool_Type
+   is
+   begin
+      return (Data    => Const (Name    => Name,
+                                Sort    => z3_api_h.Z3_mk_bool_sort (Context.Data),
+                                Context => Context.Data),
               Context => Context);
    end Bool;
 
@@ -55,17 +76,9 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Value (Data : Bool_Type) return Result
-   is
-   begin
-      case (z3_api_h.Z3_get_bool_value (c => Data.Context.Data,
-                                        a => Data.Data)) is
-         when z3_api_h.Z3_L_FALSE => return Result_False;
-         when z3_api_h.Z3_L_TRUE  => return Result_True;
-         when z3_api_h.Z3_L_UNDEF => return Result_Undef;
-         when others              => raise Z3.Value_Error;  --  GCOV_EXCL_LINE
-      end case;
-   end Value;
+   function Value (Data : Bool_Type) return Result is
+      (Convert_Bool (z3_api_h.Z3_get_bool_value (c => Data.Context.Data,
+                                                 a => Data.Data)));
 
    ------------------------------------------------------------------------------------------------
 
@@ -147,7 +160,13 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Conjunction (Terms : Bool_Array) return Bool_Type
+   generic
+      with function Z3_mk_multi_op (Context : z3_api_h.Z3_context;
+                                    Num     : Interfaces.C.unsigned;
+                                    Args    : System.Address) return z3_api_h.Z3_ast;
+   function Bool_Multi_Op (Terms : Bool_Array) return Bool_Type;
+
+   function Bool_Multi_Op (Terms : Bool_Array) return Bool_Type
    is
       type Z3_Bool_Array is array (Terms'Range) of z3_api_h.Z3_ast;
       Args  : Z3_Bool_Array;
@@ -157,11 +176,17 @@ is
          Args (I) := Terms (I).Data;
       end loop;
 
-      return (Data    => z3_api_h.Z3_mk_and (c        => First.Context.Data,
-                                             num_args => Args'Length,
-                                             args     => Args'Address),
+      return (Data    => Z3_mk_multi_op (Context => First.Context.Data,
+                                         Num     => Args'Length,
+                                         Args    => Args'Address),
               Context => First.Context);
-   end Conjunction;
+   end Bool_Multi_Op;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Conjunction_Instance is new Bool_Multi_Op (z3_api_h.Z3_mk_and);
+
+   function Conjunction (Terms : Bool_Array) return Bool_Type renames Conjunction_Instance;
 
    ------------------------------------------------------------------------------------------------
 
@@ -173,21 +198,9 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Disjunction (Terms : Bool_Array) return Bool_Type
-   is
-      type Z3_Bool_Array is array (Terms'Range) of z3_api_h.Z3_ast;
-      Args  : Z3_Bool_Array;
-      First : constant Bool_Type := Terms (Terms'First);
-   begin
-      for I in Terms'Range loop
-         Args (I) := Terms (I).Data;
-      end loop;
+   function Disjunction_Instance is new Bool_Multi_Op (z3_api_h.Z3_mk_or);
 
-      return (Data    => z3_api_h.Z3_mk_or (c        => First.Context.Data,
-                                            num_args => Args'Length,
-                                            args     => Args'Address),
-              Context => First.Context);
-   end Disjunction;
+   function Disjunction (Terms : Bool_Array) return Bool_Type renames Disjunction_Instance;
 
    ------------------------------------------------------------------------------------------------
 
@@ -201,14 +214,10 @@ is
 
    function Int (Name : String; Context : Z3.Context := Default_Context) return Int_Type
    is
-      C_Name : constant chars_ptr := New_String (Name);
-      Symbol : constant z3_api_h.Z3_symbol :=
-         z3_api_h.Z3_mk_string_symbol (c => Context.Data,
-                                       s => z3_api_h.Z3_string (C_Name));
    begin
-      return (Data    => z3_api_h.Z3_mk_const (c  => Context.Data,
-                                               s  => Symbol,
-                                               ty => z3_api_h.Z3_mk_int_sort (Context.Data)),
+      return (Data    => Const (Name    => Name,
+                                Sort    => z3_api_h.Z3_mk_int_sort (Context.Data),
+                                Context => Context.Data),
               Context => Context);
    end Int;
 
@@ -256,7 +265,13 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Add (Values : Int_Array) return Int_Type
+   generic
+      with function Z3_mk_multi_op (Context : z3_api_h.Z3_context;
+                                    Num     : Interfaces.C.unsigned;
+                                    Args    : System.Address) return z3_api_h.Z3_ast;
+   function Int_Multi_Op (Values : Int_Array) return Int_Type;
+
+   function Int_Multi_Op (Values : Int_Array) return Int_Type
    is
       type Z3_Int_Array is array (Values'Range) of z3_api_h.Z3_ast;
       Args : Z3_Int_Array;
@@ -266,11 +281,17 @@ is
          Args (I) := Values (I).Data;
       end loop;
 
-      return (Data    => z3_api_h.Z3_mk_add (c        => First.Context.Data,
-                                             num_args => Args'Length,
-                                             args     => Args'Address),
+      return (Data    => Z3_mk_multi_op (Context => First.Context.Data,
+                                         Num     => Args'Length,
+                                         Args    => Args'Address),
               Context => First.Context);
-   end Add;
+   end Int_Multi_Op;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Add_Instance is new Int_Multi_Op (z3_api_h.Z3_mk_add);
+
+   function Add (Values : Int_Array) return Int_Type renames Add_Instance;
 
    ------------------------------------------------------------------------------------------------
 
@@ -282,21 +303,9 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Mul (Values : Int_Array) return Int_Type
-   is
-      type Z3_Int_Array is array (Values'Range) of z3_api_h.Z3_ast;
-      Args : Z3_Int_Array;
-      First : constant Int_Type := Values (Values'First);
-   begin
-      for I in Values'Range loop
-         Args (I) := Values (I).Data;
-      end loop;
+   function Mul_Instance is new Int_Multi_Op (z3_api_h.Z3_mk_mul);
 
-      return (Data    => z3_api_h.Z3_mk_mul (c        => First.Context.Data,
-                                             num_args => Args'Length,
-                                             args     => Args'Address),
-              Context => First.Context);
-   end Mul;
+   function Mul (Values : Int_Array) return Int_Type renames Mul_Instance;
 
    ------------------------------------------------------------------------------------------------
 
@@ -444,15 +453,8 @@ is
    function Check (Solver  : Z3.Solver;
                    Context : Z3.Context := Default_Context) return Result
    is
-      Check_Result : z3_api_h.Z3_lbool;
    begin
-      Check_Result := z3_api_h.Z3_solver_check (c => Context.Data, s => Solver.Data);
-      case Check_Result is
-         when z3_api_h.Z3_L_FALSE => return Result_False;
-         when z3_api_h.Z3_L_TRUE  => return Result_True;
-         when z3_api_h.Z3_L_UNDEF => return Result_Undef;
-         when others => raise Z3.Internal_Error; --  GCOV_EXCL_LINE
-      end case;
+      return Convert_Bool (z3_api_h.Z3_solver_check (c => Context.Data, s => Solver.Data));
    end Check;
 
    ------------------------------------------------------------------------------------------------
@@ -732,66 +734,75 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   procedure Minimize (Optimize : in out Z3.Optimize;
-                       Term     :        Z3.Arith_Type'Class)
+   generic
+      with function Z3_optimize_op (Context : z3_api_h.Z3_context;
+                                    Opt     : z3_api_h.Z3_optimize;
+                                    Term    : z3_api_h.Z3_ast) return Interfaces.C.unsigned;
+   procedure Generic_Optimize (Optimize : in out Z3.Optimize;
+                               Term     :        Z3.Arith_Type'Class);
+
+   procedure Generic_Optimize (Optimize : in out Z3.Optimize;
+                               Term     :        Z3.Arith_Type'Class)
    is
       Index : Interfaces.C.unsigned;
    begin
-      Index := z3_optimization_h.Z3_optimize_minimize (Optimize.Context.Data, Optimize.Data, Term.Data);
+      Index := Z3_optimize_op (Optimize.Context.Data, Optimize.Data, Term.Data);
       Optimize.Objectives.Insert (Term, (Index, Optimize.Backtracking_Count));
-   end Minimize;
+   end Generic_Optimize;
 
    ------------------------------------------------------------------------------------------------
 
+   procedure Minimize_Instance is new Generic_Optimize (z3_optimization_h.Z3_optimize_minimize);
+
+   procedure Minimize (Optimize : in out Z3.Optimize;
+                       Term     :        Z3.Arith_Type'Class) renames Minimize_Instance;
+
+   ------------------------------------------------------------------------------------------------
+
+   procedure Maximize_Instance is new Generic_Optimize (z3_optimization_h.Z3_optimize_maximize);
+
    procedure Maximize (Optimize : in out Z3.Optimize;
-                       Term     :        Z3.Arith_Type'Class)
-   is
-      Index : Interfaces.C.unsigned;
-   begin
-      Index := z3_optimization_h.Z3_optimize_maximize (Optimize.Context.Data, Optimize.Data, Term.Data);
-      Optimize.Objectives.Insert (Term, (Index, Optimize.Backtracking_Count));
-   end Maximize;
+                       Term     :        Z3.Arith_Type'Class) renames Maximize_Instance;
 
    ------------------------------------------------------------------------------------------------
 
    procedure Check (Optimize : in out Z3.Optimize;
                     Result   :    out Z3.Result)
    is
-      Check_Result : z3_api_h.Z3_lbool;
    begin
-      Check_Result := z3_optimization_h.Z3_optimize_check
-         (Optimize.Context.Data, Optimize.Data, 0, System.Null_Address);
-      case Check_Result is
-         when z3_api_h.Z3_L_FALSE => Result := Result_False;
-         when z3_api_h.Z3_L_TRUE  => Result := Result_True;
-         when z3_api_h.Z3_L_UNDEF => Result := Result_Undef;
-         when others => raise Z3.Internal_Error; --  GCOV_EXCL_LINE
-      end case;
+      Result := Convert_Bool (z3_optimization_h.Z3_optimize_check
+                              (Optimize.Context.Data, Optimize.Data, 0, System.Null_Address));
    end Check;
 
    ------------------------------------------------------------------------------------------------
 
-   function Lower (Optimize  : Z3.Optimize;
-                   Objective : Z3.Arith_Type'Class) return Z3.Int_Type'Class
-   is
-   begin
-      return Z3.Int_Type'(Data    => z3_optimization_h.Z3_optimize_get_lower (Optimize.Context.Data,
-                                                                              Optimize.Data,
-                                                                              Optimize.Objectives (Objective).Index),
-                          Context => Optimize.Context);
-   end Lower;
+   generic
+      with function Z3_optimize_get_value (Context : z3_api_h.Z3_context;
+                                           Opt     : z3_api_h.Z3_optimize;
+                                           Idx     : Interfaces.C.unsigned) return z3_api_h.Z3_ast;
+   function Optimize_Get_Value (Optimize  : Z3.Optimize;
+                                Objective : Arith_Type'Class) return Int_Type'Class;
+
+   function Optimize_Get_Value (Optimize  : Z3.Optimize;
+                                Objective : Arith_Type'Class) return Int_Type'Class is
+      (Int_Type'(Data    => Z3_optimize_get_value (Optimize.Context.Data,
+                                                   Optimize.Data,
+                                                   Optimize.Objectives (Objective).Index),
+                 Context => Optimize.Context));
 
    ------------------------------------------------------------------------------------------------
 
+   function Lower_Instance is new Optimize_Get_Value (z3_optimization_h.Z3_optimize_get_lower);
+
+   function Lower (Optimize  : Z3.Optimize;
+                   Objective : Z3.Arith_Type'Class) return Z3.Int_Type'Class renames Lower_Instance;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Upper_Instance is new Optimize_Get_Value (z3_optimization_h.Z3_optimize_get_upper);
+
    function Upper (Optimize  : Z3.Optimize;
-                   Objective : Z3.Arith_Type'Class) return Z3.Int_Type'Class
-   is
-   begin
-      return Z3.Int_Type'(Data    => z3_optimization_h.Z3_optimize_get_upper (Optimize.Context.Data,
-                                                                              Optimize.Data,
-                                                                              Optimize.Objectives (Objective).Index),
-                          Context => Optimize.Context);
-   end Upper;
+                   Objective : Z3.Arith_Type'Class) return Z3.Int_Type'Class renames Upper_Instance;
 
    ------------------------------------------------------------------------------------------------
 
@@ -972,15 +983,10 @@ is
                         Size    : Natural;
                         Context : Z3.Context := Default_Context) return Bit_Vector_Type
    is
-      C_Name : constant chars_ptr := New_String (Name);
-      Symbol : constant z3_api_h.Z3_symbol :=
-         z3_api_h.Z3_mk_string_symbol (c => Context.Data,
-                                       s => z3_api_h.Z3_string (C_Name));
    begin
-      return (Data    => z3_api_h.Z3_mk_const (c  => Context.Data,
-                                               s  => Symbol,
-                                               ty => z3_api_h.Z3_mk_bv_sort
-                                                  (Context.Data, Interfaces.C.unsigned (Size))),
+      return (Data    => Const (Name    => Name,
+                                Sort    => z3_api_h.Z3_mk_bv_sort (Context.Data, Interfaces.C.unsigned (Size)),
+                                Context => Context.Data),
               Context => Context);
    end Bit_Vector;
 
@@ -1228,14 +1234,10 @@ is
    function Real (Name    : String;
                   Context : Z3.Context := Default_Context) return Real_Type
    is
-      C_Name : constant chars_ptr := New_String (Name);
-      Symbol : constant z3_api_h.Z3_symbol :=
-         z3_api_h.Z3_mk_string_symbol (c => Context.Data,
-                                       s => z3_api_h.Z3_string (C_Name));
    begin
-      return (Data    => z3_api_h.Z3_mk_const (c  => Context.Data,
-                                               s  => Symbol,
-                                               ty => z3_api_h.Z3_mk_real_sort (Context.Data)),
+      return (Data    => Const (Name    => Name,
+                                Sort    => z3_api_h.Z3_mk_real_sort (Context.Data),
+                                Context => Context.Data),
               Context => Context);
    end Real;
 
