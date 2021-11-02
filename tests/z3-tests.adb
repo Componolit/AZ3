@@ -70,6 +70,9 @@ package body Z3.Tests is
               "Conjunction invalid");
       Assert (Simp (Disjunction ((Bool (True), Bool (False), Bool (True)))) = Bool (True),
               "Disjunction invalid");
+      Assert (Value (Bool (True)) = Result_True, "Invalid true");
+      Assert (Value (Bool (False)) = Result_False, "Invalid false");
+      Assert (Value (Bool ("A")) = Result_Undef, "Invalid undef");
    end Test_Booleans;
 
    ---------------------------------------------------------------------------
@@ -257,7 +260,7 @@ package body Z3.Tests is
       S.Assert (Int ("X") >= Int (LLI'(3)) and Int ("X") <= Int (LLI'(100)));
       Assert (S.Check = Result_True, "X >= 3 and X <= 100 not checked as true");
       S.Reset;
-      S.Assert (Int ("X") ** Int ("Y") >= Int ("X"));
+      S.Assert (Int (Int ("X") ** Int ("Y")) >= Int ("X"));
       Assert (S.Check = Result_Undef, "expected Undef");
    end Test_Solver;
 
@@ -517,7 +520,7 @@ package body Z3.Tests is
       Result   : Z3.Result;
    begin
       Optimize.Set_Timeout (100);
-      Optimize.Assert (Int ("X") ** Int ("Y") >= Int ("X"));
+      Optimize.Assert (Int (Int ("X") ** Int ("Y")) >= Int ("X"));
       Optimize.Check (Result);
       Assert (Result = Result_Undef, "Optimize not undef");
       Optimize.Assert (Int ("X") < Int (LLU'(3)) and Int ("X") > Int (LLU'(100)));
@@ -790,6 +793,21 @@ package body Z3.Tests is
 
    ---------------------------------------------------------------------------
 
+   procedure Test_Real (T : in out Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      Assert (Sort (Real ("A")) = Sort_Real, "Invalid sort for Real");
+      Assert (Real (1) = Simplified (Real (Int (LLU'(1)))), "Real (1) /= Real (Int (1))");
+      Assert (Simplified (Int (Real (1))) = Int (LLU'(1)), "Int (Real (1)) /= Int (1)");
+      Assert (Value (Simplified (Is_Int (Real (1)))) = Result_True, "Invalid int");
+      Assert (Value (Simplified (Is_Int (Real (1, 2)))) = Result_False, "Invalid fraction");
+      Assert (Value (Simplified (Is_Int (Real ("A")))) = Result_Undef, "Invalid undef");
+      Assert (Int (LLU'(1)) = Simplified (Int (Real (3, 2))), "Invalid conversion");
+   end Test_Real;
+
+   ---------------------------------------------------------------------------
+
    overriding
    procedure Register_Tests (T : in out Test_Case)
    is
@@ -815,6 +833,7 @@ package body Z3.Tests is
       Register_Routine (T, Test_Sort'Access, "Sort");
       Register_Routine (T, Test_Big_Int'Access, "Big Integer");
       Register_Routine (T, Test_Logic'Access, "Logic");
+      Register_Routine (T, Test_Real'Access, "Real");
    end Register_Tests;
 
    ---------------------------------------------------------------------------

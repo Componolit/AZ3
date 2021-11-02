@@ -55,6 +55,20 @@ is
 
    ------------------------------------------------------------------------------------------------
 
+   function Value (Data : Bool_Type) return Result
+   is
+   begin
+      case (z3_api_h.Z3_get_bool_value (c => Data.Context.Data,
+                                        a => Data.Data)) is
+         when z3_api_h.Z3_L_FALSE => return Result_False;
+         when z3_api_h.Z3_L_TRUE  => return Result_True;
+         when z3_api_h.Z3_L_UNDEF => return Result_Undef;
+         when others              => raise Z3.Value_Error;  --  GCOV_EXCL_LINE
+      end case;
+   end Value;
+
+   ------------------------------------------------------------------------------------------------
+
    function Equal (Left, Right : Expr_Type'Class) return Bool_Type
    is
    begin
@@ -212,9 +226,21 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Int (Expr : Expr_Type'Class) return Int_Type is
-      (Data    => Expr.Data,
-       Context => Expr.Context);
+   function Int (Expr : Expr_Type'Class) return Int_Type
+   is
+   begin
+      case Sort (Expr) is
+         when Sort_Int =>
+            return (Data    => Expr.Data,
+                    Context => Expr.Context);
+         when Sort_Real =>
+            return (Data    => z3_api_h.Z3_mk_real2int (c  => Expr.Context.Data,
+                                                        t1 => Expr.Data),
+                    Context => Expr.Context);
+         when others =>  --  GCOV_EXCL_LINE
+            raise Z3.Value_Error with "Invalid sort: " & Sort (Expr)'Image;  --  GCOV_EXCL_LINE
+      end case;
+   end Int;
 
    ------------------------------------------------------------------------------------------------
 
@@ -306,13 +332,13 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function "**" (Left : Int_Type; Right : Int_Type) return Int_Type
+   function "**" (Left : Int_Type; Right : Int_Type) return Real_Type'Class
    is
    begin
-      return (Data    => z3_api_h.Z3_mk_power (c    => Left.Context.Data,
-                                               arg1 => Left.Data,
-                                               arg2 => Right.Data),
-              Context => Left.Context);
+      return Real_Type'(Data    => z3_api_h.Z3_mk_power (c    => Left.Context.Data,
+                                                         arg1 => Left.Data,
+                                                         arg2 => Right.Data),
+                        Context => Left.Context);
    end "**";
 
    ------------------------------------------------------------------------------------------------
@@ -636,6 +662,7 @@ is
       case z3_api_h.Z3_get_sort_kind (Ctx, z3_api_h.Z3_get_sort (Ctx, Value.Data)) is
          when z3_api_h.Z3_BOOL_SORT => return Sort_Bool;
          when z3_api_h.Z3_INT_SORT  => return Sort_Int;
+         when z3_api_h.Z3_REAL_SORT => return Sort_Real;
          when z3_api_h.Z3_BV_SORT   => return Sort_Bit_Vector;
          when others                => return Sort_Unknown;  --  GCOV_EXCL_LINE
       end case;
@@ -927,7 +954,7 @@ is
             if Position = 0 then
                Result := Val (C);
             else
-               Result := Result + Int (Long_Long_Unsigned (Base)) ** Int (Position) * Val (C);
+               Result := Result + Int (Int (Long_Long_Unsigned (Base)) ** Int (Position)) * Val (C);
             end if;
             Position := Position + 1;
          end if;
@@ -1195,5 +1222,62 @@ is
                                                t2 => Right.Data),
               Context => Left.Context);
    end ">=";
+
+   ------------------------------------------------------------------------------------------------
+
+   function Real (Name    : String;
+                  Context : Z3.Context := Default_Context) return Real_Type
+   is
+      C_Name : constant chars_ptr := New_String (Name);
+      Symbol : constant z3_api_h.Z3_symbol :=
+         z3_api_h.Z3_mk_string_symbol (c => Context.Data,
+                                       s => z3_api_h.Z3_string (C_Name));
+   begin
+      return (Data    => z3_api_h.Z3_mk_const (c  => Context.Data,
+                                               s  => Symbol,
+                                               ty => z3_api_h.Z3_mk_real_sort (Context.Data)),
+              Context => Context);
+   end Real;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Real (Numerator   : Integer;
+                  Denominator : Integer    := 1;
+                  Context     : Z3.Context := Default_Context) return Real_Type
+   is
+   begin
+      return (Data    => z3_api_h.Z3_mk_real (c   => Context.Data,
+                                              num => Interfaces.C.int (Numerator),
+                                              den => Interfaces.C.int (Denominator)),
+              Context => Context);
+   end Real;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Real (Expr : Expr_Type'Class) return Real_Type
+   is
+   begin
+      case Sort (Expr) is
+         when Sort_Real =>
+            return (Data    => Expr.Data,
+                    Context => Expr.Context);
+         when Sort_Int =>
+            return (Data    => z3_api_h.Z3_mk_int2real (c  => Expr.Context.Data,
+                                                        t1 => Expr.Data),
+                    Context => Expr.Context);
+         when others =>  --  GCOV_EXCL_LINE
+            raise Z3.Value_Error with "Invalid sort: " & Sort (Expr)'Image;  --  GCOV_EXCL_LINE
+      end case;
+   end Real;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Is_Int (Value : Real_Type) return Bool_Type'Class
+   is
+   begin
+      return Bool_Type'(Data    => z3_api_h.Z3_mk_is_int (c  => Value.Context.Data,
+                                                       t1 => Value.Data),
+                        Context => Value.Context);
+   end Is_Int;
 
 end Z3;

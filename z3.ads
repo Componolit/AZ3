@@ -34,7 +34,11 @@ package Z3 is  --  GCOV_EXCL_LINE
                       Kind_Mod,
                       Kind_Power);
 
-   type Expr_Sort is (Sort_Bool, Sort_Int, Sort_Bit_Vector, Sort_Unknown);
+   type Expr_Sort is (Sort_Bool,
+                      Sort_Int,
+                      Sort_Bit_Vector,
+                      Sort_Real,
+                      Sort_Unknown);
 
    Default_Context : constant Context;
    function New_Context return Context;
@@ -101,6 +105,8 @@ package Z3 is  --  GCOV_EXCL_LINE
                           Same_Context (Expr, From (From'First))
                           and then Same_Context (From & To));
 
+   function Value (Data : Bool_Type) return Result;
+
    overriding
    function "&" (Left, Right : Bool_Type) return Bool_Array with
       Pre => Same_Context (Left, Right);
@@ -127,6 +133,21 @@ package Z3 is  --  GCOV_EXCL_LINE
 
    type Arith_Type is new Expr_Type with private;
 
+   --  Real expressions
+
+   type Real_Type is new Arith_Type with private;
+   function Real (Name    : String;
+                  Context : Z3.Context := Default_Context) return Real_Type;
+   function Real (Numerator   : Integer;
+                  Denominator : Integer    := 1;
+                  Context     : Z3.Context := Default_Context) return Real_Type with
+      Pre => Denominator /= 0;
+   function Real (Expr    : Expr_Type'Class) return Real_Type with
+      Pre => Sort (Expr) in Sort_Int | Sort_Real;
+   function Is_Int (Value : Real_Type) return Bool_Type'Class;
+   overriding
+   function Simplified (Value : Real_Type) return Real_Type;
+
    --  Integer expressions
    type Int_Type is new Arith_Type with private;
    type Int_Array is array (Natural range <>) of Int_Type;
@@ -137,7 +158,7 @@ package Z3 is  --  GCOV_EXCL_LINE
    function Int (Value   : Long_Long_Unsigned;
                  Context : Z3.Context := Default_Context) return Int_Type;
    function Int (Expr : Expr_Type'Class) return Int_Type with
-      Pre => Sort (Expr) = Sort_Int;
+      Pre => Sort (Expr) in Sort_Int | Sort_Real;
 
    function Big_Int (Value   : String;
                      Base    : Positive   := 10;
@@ -189,7 +210,7 @@ package Z3 is  --  GCOV_EXCL_LINE
    function "/" (Left : Int_Type; Right : Int_Type) return Int_Type with
       Pre => Same_Context (Left, Right);
 
-   function "**" (Left : Int_Type; Right : Int_Type) return Int_Type with
+   function "**" (Left : Int_Type; Right : Int_Type) return Real_Type'Class with
       Pre => Same_Context (Left, Right);
 
    function "mod" (Left : Int_Type; Right : Int_Type) return Int_Type with
@@ -438,6 +459,8 @@ private
 
    type Arith_Type is new Expr_Type with null record;
 
+   type Real_Type is new Arith_Type with null record;
+
    type Int_Type is new Arith_Type with null record;
 
    type Bit_Vector_Type is new Arith_Type with null record;
@@ -525,6 +548,8 @@ private
 
    overriding
    function Simplified (Value : Bool_Type) return Bool_Type is (Bool (Expr_Type (Value).Simplified));
+   overriding
+   function Simplified (Value : Real_Type) return Real_Type is (Real (Expr_Type (Value).Simplified));
    overriding
    function Simplified (Value : Int_Type) return Int_Type is (Int (Expr_Type (Value).Simplified));
    overriding
