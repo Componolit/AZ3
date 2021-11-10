@@ -99,7 +99,7 @@ package Z3 is  --  GCOV_EXCL_LINE
                         From : Bool_Array;
                         To   : Bool_Array) return Expr_Type'Class with
       Pre => From'Length = To'Length
-             and then (if
+             and then (if  -- GCOV_EXCL_LINE
                           From'Length > 0
                        then
                           Same_Context (Expr, From (From'First))
@@ -178,7 +178,7 @@ package Z3 is  --  GCOV_EXCL_LINE
                         From : Int_Array;
                         To   : Int_Array) return Expr_Type'Class with
       Pre => From'Length = To'Length
-             and then (if
+             and then (if  -- GCOV_EXCL_LINE
                           From'Length > 0
                        then
                           Same_Context (Expr, From (From'First))
@@ -268,7 +268,7 @@ package Z3 is  --  GCOV_EXCL_LINE
                         From : Bit_Vector_Array;
                         To   : Bit_Vector_Array) return Expr_Type'Class with
       Pre => From'Length = To'Length
-             and then (if
+             and then (if  -- GCOV_EXCL_LINE
                           From'Length > 0
                        then
                           Same_Context (Expr, From (From'First))
@@ -527,13 +527,13 @@ private
    end record;
 
    function To_Z3_ast_array (Value : Bool_Array) return Z3_ast_array with
-      Pre  => Same_Context (Value),
+      Pre  => Same_Context (Value),  -- GCOV_EXCL_LINE
       Post => Value'Length = To_Z3_ast_array'Result'Length;
    function To_Z3_ast_array (Value : Int_Array) return Z3_ast_array with
-      Pre  => Same_Context (Value),
+      Pre  => Same_Context (Value),  -- GCOV_EXCL_LINE
       Post => Value'Length = To_Z3_ast_array'Result'Length;
    function To_Z3_ast_array (Value : Bit_Vector_Array) return Z3_ast_array with
-      Pre  => Same_Context (Value),
+      Pre  => Same_Context (Value),  -- GCOV_EXCL_LINE
       Post => Value'Length = To_Z3_ast_array'Result'Length;
 
    Default_Config  : Z3.Config := (Data => z3_api_h.Z3_mk_config);
