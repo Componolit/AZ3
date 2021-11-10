@@ -106,43 +106,78 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Substitute (Expr : Expr_Type'Class;
-                        From : Bool_Array;
-                        To   : Bool_Array) return Expr_Type'Class
+   generic
+      type Expr is new Expr_Type with private;
+      type Expr_Array is array (Natural range <>) of Expr;
+   function Generic_To_Z3_ast_array (Value : Expr_Array) return Z3_ast_array;
+
+   function Generic_To_Z3_ast_array (Value : Expr_Array) return Z3_ast_array
    is
-      From_Ast : constant Z3_ast_array := To_Z3_ast_array (From);
-      To_Ast   : constant Z3_ast_array := To_Z3_ast_array (To);
+      Result : Z3_ast_array (Value'Range);
    begin
-      if From'Length = 0 then
-         return Expr;
-      end if;
-      return Expr_Type'(Data    => z3_api_h.Z3_substitute (Expr.Context.Data,
-                                                           Expr.Data,
-                                                           From_Ast'Length,
-                                                           From_Ast'Address,
-                                                           To_Ast'Address),
-                        Context => Expr.Context);
-   end Substitute;
+      for I in Value'Range loop
+         Result (I) := Value (I).Data;
+      end loop;
+      return Result;
+   end Generic_To_Z3_ast_array;
 
    ------------------------------------------------------------------------------------------------
 
-   function Substitute (Expr : Expr_Type'Class;
-                        From : Int_Array;
-                        To   : Int_Array) return Expr_Type'Class
+   function To_Z3_ast_array_Bool is new Generic_To_Z3_ast_array (Bool_Type, Bool_Array);
+   function To_Z3_ast_array (Value : Bool_Array) return Z3_ast_array renames To_Z3_ast_array_Bool;  -- GCOV_EXCL_LINE
+
+   ------------------------------------------------------------------------------------------------
+
+   function To_Z3_ast_array_Int is new Generic_To_Z3_ast_array (Int_Type, Int_Array);
+   function To_Z3_ast_array (Value : Int_Array) return Z3_ast_array renames To_Z3_ast_array_Int;  -- GCOV_EXCL_LINE
+
+   ------------------------------------------------------------------------------------------------
+
+   function To_Z3_ast_array_Bit_Vector is new Generic_To_Z3_ast_array (Bit_Vector_Type, Bit_Vector_Array);
+   function To_Z3_ast_array (Value : Bit_Vector_Array) return Z3_ast_array renames  -- GCOV_EXCL_LINE
+      To_Z3_ast_array_Bit_Vector;
+
+   ------------------------------------------------------------------------------------------------
+
+   generic
+      type Expr is new Expr_Type with private;
+      type Expr_Array is array (Natural range <>) of Expr;
+      with function Subst_To_Z3_ast_array (Terms : Expr_Array) return Z3_ast_array;
+   function Generic_Substitute (Term : Expr_Type'Class;
+                                From : Expr_Array;
+                                To   : Expr_Array) return Expr_Type'Class;
+
+   function Generic_Substitute (Term : Expr_Type'Class;
+                                From : Expr_Array;
+                                To   : Expr_Array) return Expr_Type'Class
    is
-      From_Ast : constant Z3_ast_array := To_Z3_ast_array (From);
-      To_Ast   : constant Z3_ast_array := To_Z3_ast_array (To);
+      From_Ast : constant Z3_ast_array := Subst_To_Z3_ast_array (From);
+      To_Ast   : constant Z3_ast_array := Subst_To_Z3_ast_array (To);
    begin
       if From'Length = 0 then
-         return Expr;
+         return Term;
       end if;
-      return Expr_Type'(Data    => z3_api_h.Z3_substitute (Expr.Context.Data,
-                                                           Expr.Data,
+      return Expr_Type'(Data    => z3_api_h.Z3_substitute (Term.Context.Data,
+                                                           Term.Data,
                                                            From_Ast'Length,
                                                            From_Ast'Address,
                                                            To_Ast'Address),
-                        Context => Expr.Context);
-   end Substitute;
+                        Context => Term.Context);
+   end Generic_Substitute;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Substitute_Bool is new Generic_Substitute (Bool_Type, Bool_Array, To_Z3_ast_array_Bool);
+   function Substitute (Expr : Expr_Type'Class;
+                        From : Bool_Array;
+                        To   : Bool_Array) return Expr_Type'Class renames Substitute_Bool;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Substitute_Int is new Generic_Substitute (Int_Type, Int_Array, To_Z3_ast_array_Int);
+   function Substitute (Expr : Expr_Type'Class;
+                        From : Int_Array;
+                        To   : Int_Array) return Expr_Type'Class renames Substitute_Int;
 
    ------------------------------------------------------------------------------------------------
 
@@ -164,29 +199,32 @@ is
       with function Z3_mk_multi_op (Context : z3_api_h.Z3_context;
                                     Num     : Interfaces.C.unsigned;
                                     Args    : System.Address) return z3_api_h.Z3_ast;
-   function Bool_Multi_Op (Terms : Bool_Array) return Bool_Type;
+      type Expr is new Expr_Type with private;
+      type Expr_Array is array (Natural range <>) of Expr;
+   function Z3_Multi_Op (Terms : Expr_Array) return Expr_Type;
 
-   function Bool_Multi_Op (Terms : Bool_Array) return Bool_Type
+   function Z3_Multi_Op (Terms : Expr_Array) return Expr_Type
    is
-      type Z3_Bool_Array is array (Terms'Range) of z3_api_h.Z3_ast;
-      Args  : Z3_Bool_Array;
-      First : constant Bool_Type := Terms (Terms'First);
+      type Z3_Array is array (Terms'Range) of z3_api_h.Z3_ast;
+      Args : Z3_Array;
+      Ctx  : constant Context := Terms (Terms'First).Context;
    begin
       for I in Terms'Range loop
          Args (I) := Terms (I).Data;
       end loop;
 
-      return (Data    => Z3_mk_multi_op (Context => First.Context.Data,
+      return (Data    => Z3_mk_multi_op (Context => Ctx.Data,
                                          Num     => Args'Length,
                                          Args    => Args'Address),
-              Context => First.Context);
-   end Bool_Multi_Op;
+              Context => Ctx);
+   end Z3_Multi_Op;
 
    ------------------------------------------------------------------------------------------------
 
-   function Conjunction_Instance is new Bool_Multi_Op (z3_api_h.Z3_mk_and);
+   function Conjunction_Instance is new Z3_Multi_Op (z3_api_h.Z3_mk_and, Bool_Type, Bool_Array);
 
-   function Conjunction (Terms : Bool_Array) return Bool_Type renames Conjunction_Instance;
+   function Conjunction (Terms : Bool_Array) return Bool_Type is
+      (Bool (Conjunction_Instance (Terms)));
 
    ------------------------------------------------------------------------------------------------
 
@@ -198,9 +236,10 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Disjunction_Instance is new Bool_Multi_Op (z3_api_h.Z3_mk_or);
+   function Disjunction_Instance is new Z3_Multi_Op (z3_api_h.Z3_mk_or, Bool_Type, Bool_Array);
 
-   function Disjunction (Terms : Bool_Array) return Bool_Type renames Disjunction_Instance;
+   function Disjunction (Terms : Bool_Array) return Bool_Type is
+      (Bool (Disjunction_Instance (Terms)));
 
    ------------------------------------------------------------------------------------------------
 
@@ -265,33 +304,10 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   generic
-      with function Z3_mk_multi_op (Context : z3_api_h.Z3_context;
-                                    Num     : Interfaces.C.unsigned;
-                                    Args    : System.Address) return z3_api_h.Z3_ast;
-   function Int_Multi_Op (Values : Int_Array) return Int_Type;
+   function Add_Instance is new Z3_Multi_Op (z3_api_h.Z3_mk_add, Int_Type, Int_Array);
 
-   function Int_Multi_Op (Values : Int_Array) return Int_Type
-   is
-      type Z3_Int_Array is array (Values'Range) of z3_api_h.Z3_ast;
-      Args : Z3_Int_Array;
-      First : constant Int_Type := Values (Values'First);
-   begin
-      for I in Values'Range loop
-         Args (I) := Values (I).Data;
-      end loop;
-
-      return (Data    => Z3_mk_multi_op (Context => First.Context.Data,
-                                         Num     => Args'Length,
-                                         Args    => Args'Address),
-              Context => First.Context);
-   end Int_Multi_Op;
-
-   ------------------------------------------------------------------------------------------------
-
-   function Add_Instance is new Int_Multi_Op (z3_api_h.Z3_mk_add);
-
-   function Add (Values : Int_Array) return Int_Type renames Add_Instance;
+   function Add (Values : Int_Array) return Int_Type is
+      (Int (Add_Instance (Values)));
 
    ------------------------------------------------------------------------------------------------
 
@@ -303,9 +319,10 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Mul_Instance is new Int_Multi_Op (z3_api_h.Z3_mk_mul);
+   function Mul_Instance is new Z3_Multi_Op (z3_api_h.Z3_mk_mul, Int_Type, Int_Array);
 
-   function Mul (Values : Int_Array) return Int_Type renames Mul_Instance;
+   function Mul (Values : Int_Array) return Int_Type is
+      (Int (Mul_Instance (Values)));
 
    ------------------------------------------------------------------------------------------------
 
@@ -476,29 +493,31 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Same_Context (Terms : Bool_Array) return Boolean
+   generic
+      type Expr is new Expr_Type with private;
+      type Expr_Array is array (Natural range <>) of Expr;
+   function Generic_Same_Context (Terms : Expr_Array) return Boolean;
+
+   function Generic_Same_Context (Terms : Expr_Array) return Boolean
    is
-      First : Bool_Type;
+      First : Expr;
    begin
       if Terms'Length <= 1 then
          return True;
       end if;
       First := Terms (Terms'First);
       return (for all T of Terms (Terms'First + 1 .. Terms'Last) => Same_Context (T, First));
-   end Same_Context;
+   end Generic_Same_Context;
 
    ------------------------------------------------------------------------------------------------
 
-   function Same_Context (Values : Int_Array) return Boolean
-   is
-      First : Int_Type;
-   begin
-      if Values'Length <= 1 then
-         return True;
-      end if;
-      First := Values (Values'First);
-      return (for all T of Values (Values'First + 1 .. Values'Last) => Same_Context (T, First));
-   end Same_Context;
+   function Same_Context_Bool is new Generic_Same_Context (Bool_Type, Bool_Array);
+   function Same_Context (Terms : Bool_Array) return Boolean renames Same_Context_Bool;
+
+   ------------------------------------------------------------------------------------------------
+
+   function Same_Context_Int is new Generic_Same_Context (Int_Type, Int_Array);
+   function Same_Context (Values : Int_Array) return Boolean renames Same_Context_Int;
 
    ------------------------------------------------------------------------------------------------
 
@@ -542,42 +561,6 @@ is
       end if;
       return Long_Long_Unsigned (Result);
    end Value;
-
-   ------------------------------------------------------------------------------------------------
-
-   function To_Z3_ast_array (Value : Bool_Array) return Z3_ast_array
-   is
-      Result : Z3_ast_array (Value'First .. Value'Last);
-   begin
-      for I in Value'Range loop
-         Result (I) := Value (I).Data;
-      end loop;
-      return Result;
-   end To_Z3_ast_array;
-
-   ------------------------------------------------------------------------------------------------
-
-   function To_Z3_ast_array (Value : Int_Array) return Z3_ast_array
-   is
-      Result : Z3_ast_array (Value'First .. Value'Last);
-   begin
-      for I in Value'Range loop
-         Result (I) := Value (I).Data;
-      end loop;
-      return Result;
-   end To_Z3_ast_array;
-
-   ------------------------------------------------------------------------------------------------
-
-   function To_Z3_ast_array (Value : Bit_Vector_Array) return Z3_ast_array
-   is
-      Result : Z3_ast_array (Value'First .. Value'Last);
-   begin
-      for I in Value'Range loop
-         Result (I) := Value (I).Data;
-      end loop;
-      return Result;
-   end To_Z3_ast_array;
 
    ------------------------------------------------------------------------------------------------
 
@@ -1038,36 +1021,16 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Same_Context (Values : Bit_Vector_Array) return Boolean
-   is
-      First : Bit_Vector_Type;
-   begin
-      if Values'Length <= 1 then
-         return True;
-      end if;
-      First := Values (Values'First);
-      return (for all T of Values (Values'First + 1 .. Values'Last) => Same_Context (T, First));
-   end Same_Context;
+   function Same_Context_Bit_Vector is new Generic_Same_Context (Bit_Vector_Type, Bit_Vector_Array);
+   function Same_Context (Values : Bit_Vector_Array) return Boolean renames Same_Context_Bit_Vector;
 
    ------------------------------------------------------------------------------------------------
 
+   function Substitute_Bit_Vector is new Generic_Substitute
+      (Bit_Vector_Type, Bit_Vector_Array, To_Z3_ast_array_Bit_Vector);
    function Substitute (Expr : Expr_Type'Class;
                         From : Bit_Vector_Array;
-                        To   : Bit_Vector_Array) return Expr_Type'Class
-   is
-      From_Ast : constant Z3_ast_array := To_Z3_ast_array (From);
-      To_Ast   : constant Z3_ast_array := To_Z3_ast_array (To);
-   begin
-      if From'Length = 0 then
-         return Expr;
-      end if;
-      return Expr_Type'(Data    => z3_api_h.Z3_substitute (Expr.Context.Data,
-                                                           Expr.Data,
-                                                           From_Ast'Length,
-                                                           From_Ast'Address,
-                                                           To_Ast'Address),
-                        Context => Expr.Context);
-   end Substitute;
+                        To   : Bit_Vector_Array) return Expr_Type'Class renames Substitute_Bit_Vector;
 
    ------------------------------------------------------------------------------------------------
 
