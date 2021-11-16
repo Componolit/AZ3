@@ -34,11 +34,12 @@ is
                    Sort    : z3_api_h.Z3_sort;
                    Context : z3_api_h.Z3_context) return z3_api_h.Z3_ast
    is
-      C_Name : constant chars_ptr := New_String (Name);
+      C_Name : chars_ptr := New_String (Name);
       Symbol : constant z3_api_h.Z3_symbol :=
          z3_api_h.Z3_mk_string_symbol (c => Context,
                                        s => z3_api_h.Z3_string (C_Name));
    begin
+      Free (C_Name);
       return z3_api_h.Z3_mk_const (c  => Context,
                                    s  => Symbol,
                                    ty => Sort);
