@@ -7,20 +7,6 @@ package body Z3
 is
    use Interfaces.C.Strings;
 
-   procedure Set_Param_Value (ID : String; Value : String)
-   is
-      C_ID    : chars_ptr := New_String (ID);
-      C_Value : chars_ptr := New_String (Value);
-   begin
-      z3_api_h.Z3_set_param_value (c           => Default_Config.Data,
-                                   param_id    => z3_api_h.Z3_string (C_ID),
-                                   param_value => z3_api_h.Z3_string (C_Value));
-      Free (C_ID);
-      Free (C_Value);
-   end Set_Param_Value;
-
-   ------------------------------------------------------------------------------------------------
-
    function Convert_Bool (Value : z3_api_h.Z3_lbool) return Result is
       (case Value is
          when z3_api_h.Z3_L_FALSE => Result_False,
@@ -47,7 +33,7 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Bool (Name : String; Context : Z3.Context := Default_Context) return Bool_Type
+   function Bool (Name : String; Context : Z3.Context) return Bool_Type
    is
    begin
       return (Data    => Const (Name    => Name,
@@ -58,7 +44,7 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Bool (Value : Boolean; Context : Z3.Context := Default_Context) return Bool_Type
+   function Bool (Value : Boolean; Context : Z3.Context) return Bool_Type
    is
    begin
       if Value then
@@ -252,7 +238,7 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Int (Name : String; Context : Z3.Context := Default_Context) return Int_Type
+   function Int (Name : String; Context : Z3.Context) return Int_Type
    is
    begin
       return (Data    => Const (Name    => Name,
@@ -264,7 +250,7 @@ is
    ------------------------------------------------------------------------------------------------
 
    function Int (Value   : Long_Long_Integer;
-                 Context : Z3.Context := Default_Context) return Int_Type
+                 Context : Z3.Context) return Int_Type
    is
    begin
       return (Data    => z3_api_h.Z3_mk_int64 (c  => Context.Data,
@@ -294,7 +280,7 @@ is
    ------------------------------------------------------------------------------------------------
 
    function Int (Value   : Long_Long_Unsigned;
-                 Context : Z3.Context := Default_Context) return Int_Type
+                 Context : Z3.Context) return Int_Type
    is
    begin
       return (Data    => z3_api_h.Z3_mk_unsigned_int64 (c  => Context.Data,
@@ -435,7 +421,7 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Create (Context : Z3.Context := Default_Context) return Solver
+   function Create (Context : Z3.Context) return Solver
    is
    begin
       return (Data    => z3_api_h.Z3_mk_solver (Context.Data),
@@ -445,7 +431,7 @@ is
    ------------------------------------------------------------------------------------------------
 
    function Create (Logic   : Solver_Logic;
-                    Context : Z3.Context := Default_Context) return Solver
+                    Context : Z3.Context) return Solver
    is
    begin
       return (Data    => z3_api_h.Z3_mk_solver_for_logic
@@ -457,31 +443,28 @@ is
    ------------------------------------------------------------------------------------------------
 
    procedure Assert (Solver  : in out Z3.Solver;
-                     Fact    :        Bool_Type'Class;
-                     Context :        Z3.Context := Default_Context)
+                     Fact    :        Bool_Type'Class)
    is
    begin
-      z3_api_h.Z3_solver_assert (c => Context.Data,
+      z3_api_h.Z3_solver_assert (c => Solver.Context.Data,
                                  s => Solver.Data,
                                  a => Fact.Data);
    end Assert;
 
    ------------------------------------------------------------------------------------------------
 
-   function Check (Solver  : Z3.Solver;
-                   Context : Z3.Context := Default_Context) return Result
+   function Check (Solver  : Z3.Solver) return Result
    is
    begin
-      return Convert_Bool (z3_api_h.Z3_solver_check (c => Context.Data, s => Solver.Data));
+      return Convert_Bool (z3_api_h.Z3_solver_check (c => Solver.Context.Data, s => Solver.Data));
    end Check;
 
    ------------------------------------------------------------------------------------------------
 
-   procedure Reset (Solver  : in out Z3.Solver;
-                    Context :        Z3.Context := Default_Context)
+   procedure Reset (Solver  : in out Z3.Solver)
    is
    begin
-      z3_api_h.Z3_solver_reset (c => Context.Data, s => Solver.Data);
+      z3_api_h.Z3_solver_reset (c => Solver.Context.Data, s => Solver.Data);
    end Reset;
 
    ------------------------------------------------------------------------------------------------
@@ -665,7 +648,7 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Create (Context : Z3.Context := Default_Context) return Optimize
+   function Create (Context : Z3.Context) return Optimize
    is
       Opt : constant z3_api_h.Z3_optimize := z3_optimization_h.Z3_mk_optimize (Context.Data);
    begin
@@ -897,8 +880,13 @@ is
    ------------------------------------------------------------------------------------------------
 
    function Big_Int (Value   : String;
-                     Base    : Positive   := 10;
-                     Context : Z3.Context := Default_Context) return Int_Type
+                     Context : Z3.Context) return Int_Type is (Big_Int (Value, 10, Context));
+
+   ------------------------------------------------------------------------------------------------
+
+   function Big_Int (Value   : String;
+                     Base    : Positive;
+                     Context : Z3.Context) return Int_Type
    is
       Position : Long_Long_Integer := 0;
       Result   : Int_Type;
@@ -927,11 +915,11 @@ is
       is
       begin
          if Digit >= '0' and Digit <= '9' then
-            return Int (Long_Long_Unsigned (Character'Pos (Digit) - Character'Pos ('0')));
+            return Int (Long_Long_Unsigned (Character'Pos (Digit) - Character'Pos ('0')), Context);
          elsif Digit >= 'a' and Digit <= 'f' then
-            return Int (Long_Long_Unsigned (Character'Pos (Digit) - Character'Pos ('a') + 10));
+            return Int (Long_Long_Unsigned (Character'Pos (Digit) - Character'Pos ('a') + 10), Context);
          else
-            return Int (Long_Long_Unsigned (Character'Pos (Digit) - Character'Pos ('A') + 10));
+            return Int (Long_Long_Unsigned (Character'Pos (Digit) - Character'Pos ('A') + 10), Context);
          end if;
       end Val;
       Underscore_Seen : Boolean := False;
@@ -949,7 +937,7 @@ is
             if Position = 0 then
                Result := Val (C);
             else
-               Result := Result + Int (Int (Long_Long_Unsigned (Base)) ** Int (Position)) * Val (C);
+               Result := Result + Int (Int (Long_Long_Unsigned (Base), Context) ** Int (Position, Context)) * Val (C);
             end if;
             Position := Position + 1;
          end if;
@@ -965,7 +953,7 @@ is
 
    function Bit_Vector (Name    : String;
                         Size    : Natural;
-                        Context : Z3.Context := Default_Context) return Bit_Vector_Type
+                        Context : Z3.Context) return Bit_Vector_Type
    is
    begin
       return (Data    => Const (Name    => Name,
@@ -978,7 +966,7 @@ is
 
    function Bit_Vector (Value   : Long_Long_Unsigned;
                         Size    : Natural;
-                        Context : Z3.Context := Default_Context) return Bit_Vector_Type
+                        Context : Z3.Context) return Bit_Vector_Type
    is
    begin
       return (Data    => z3_api_h.Z3_mk_unsigned_int64 (c  => Context.Data,
@@ -992,7 +980,7 @@ is
 
    function Bit_Vector (Value   : Long_Long_Integer;
                         Size    : Natural;
-                        Context : Z3.Context := Default_Context) return Bit_Vector_Type
+                        Context : Z3.Context) return Bit_Vector_Type
    is
    begin
       return (Data    => z3_api_h.Z3_mk_int64 (c  => Context.Data,
@@ -1196,7 +1184,7 @@ is
    ------------------------------------------------------------------------------------------------
 
    function Real (Name    : String;
-                  Context : Z3.Context := Default_Context) return Real_Type
+                  Context : Z3.Context) return Real_Type
    is
    begin
       return (Data    => Const (Name    => Name,
@@ -1207,9 +1195,14 @@ is
 
    ------------------------------------------------------------------------------------------------
 
+   function Real (Numerator : Integer;
+                  Context   : Z3.Context) return Real_Type is (Real (Numerator, 1, Context));
+
+   ------------------------------------------------------------------------------------------------
+
    function Real (Numerator   : Integer;
-                  Denominator : Integer    := 1;
-                  Context     : Z3.Context := Default_Context) return Real_Type
+                  Denominator : Integer;
+                  Context     : Z3.Context) return Real_Type
    is
    begin
       return (Data    => z3_api_h.Z3_mk_real (c   => Context.Data,

@@ -40,11 +40,7 @@ package Z3 is  --  GCOV_EXCL_LINE
                       Sort_Real,
                       Sort_Unknown);
 
-   Default_Context : constant Context;
    function New_Context return Context;
-
-   --  Set a global configuration parameter for default context
-   procedure Set_Param_Value (ID : String; Value : String);
 
    type Expr_Type is tagged private with
       Default_Iterator  => Iterate,
@@ -81,12 +77,11 @@ package Z3 is  --  GCOV_EXCL_LINE
    type Bool_Type is new Expr_Type with private;
    type Bool_Array is array (Natural range <>) of Bool_Type;
 
-   function Bool (Name : String; Context : Z3.Context := Default_Context) return Bool_Type;
-   function Bool (Value : Boolean; Context : Z3.Context := Default_Context) return Bool_Type;
+   function Bool (Name : String; Context : Z3.Context) return Bool_Type;
+   function Bool (Value : Boolean; Context : Z3.Context) return Bool_Type;
    function Bool (Expr : Expr_Type'Class) return Bool_Type with
       Pre => Sort (Expr) = Sort_Bool;
    function Same_Context (Terms : Bool_Array) return Boolean;
-   function Has_Context (Value : Bool_Type; Context : Z3.Context) return Boolean;
    overriding
    function Simplified (Value : Bool_Type) return Bool_Type;
 
@@ -99,7 +94,7 @@ package Z3 is  --  GCOV_EXCL_LINE
                         From : Bool_Array;
                         To   : Bool_Array) return Expr_Type'Class with
       Pre => From'Length = To'Length
-             and then (if  -- GCOV_EXCL_LINE
+             and then (if -- GCOV_EXCL_LINE
                           From'Length > 0
                        then
                           Same_Context (Expr, From (From'First))
@@ -137,10 +132,12 @@ package Z3 is  --  GCOV_EXCL_LINE
 
    type Real_Type is new Arith_Type with private;
    function Real (Name    : String;
-                  Context : Z3.Context := Default_Context) return Real_Type;
+                  Context : Z3.Context) return Real_Type;
+   function Real (Numerator : Integer;
+                  Context   : Z3.Context) return Real_Type;
    function Real (Numerator   : Integer;
-                  Denominator : Integer    := 1;
-                  Context     : Z3.Context := Default_Context) return Real_Type with
+                  Denominator : Integer;
+                  Context     : Z3.Context) return Real_Type with
       Pre => Denominator /= 0;
    function Real (Expr    : Expr_Type'Class) return Real_Type with
       Pre => Sort (Expr) in Sort_Int | Sort_Real;
@@ -152,17 +149,20 @@ package Z3 is  --  GCOV_EXCL_LINE
    type Int_Type is new Arith_Type with private;
    type Int_Array is array (Natural range <>) of Int_Type;
 
-   function Int (Name : String; Context : Z3.Context := Default_Context) return Int_Type;
+   function Int (Name : String; Context : Z3.Context) return Int_Type;
    function Int (Value   : Long_Long_Integer;
-                 Context : Z3.Context := Default_Context) return Int_Type;
+                 Context : Z3.Context) return Int_Type;
    function Int (Value   : Long_Long_Unsigned;
-                 Context : Z3.Context := Default_Context) return Int_Type;
+                 Context : Z3.Context) return Int_Type;
    function Int (Expr : Expr_Type'Class) return Int_Type with
       Pre => Sort (Expr) in Sort_Int | Sort_Real;
 
    function Big_Int (Value   : String;
-                     Base    : Positive   := 10;
-                     Context : Z3.Context := Default_Context) return Int_Type with
+                     Context : Z3.Context) return Int_Type;
+
+   function Big_Int (Value   : String;
+                     Base    : Positive;
+                     Context : Z3.Context) return Int_Type with
       Pre => Base >= 2 and Base <= 16;
 
    function Same_Context (Values : Int_Array) return Boolean;
@@ -235,16 +235,16 @@ package Z3 is  --  GCOV_EXCL_LINE
 
    function Bit_Vector (Name    : String;
                         Size    : Natural;
-                        Context : Z3.Context := Default_Context) return Bit_Vector_Type;
+                        Context : Z3.Context) return Bit_Vector_Type;
 
    function Bit_Vector (Value   : Long_Long_Unsigned;
                         Size    : Natural;
-                        Context : Z3.Context := Default_Context) return Bit_Vector_Type with
+                        Context : Z3.Context) return Bit_Vector_Type with
       Pre => Size > Value'Size;
 
    function Bit_Vector (Value   : Long_Long_Integer;
                         Size    : Natural;
-                        Context : Z3.Context := Default_Context) return Bit_Vector_Type with
+                        Context : Z3.Context) return Bit_Vector_Type with
       Pre => Size >= Value'Size;
 
    function Bit_Vector (Value : Int_Type'Class;
@@ -369,32 +369,27 @@ package Z3 is  --  GCOV_EXCL_LINE
    Logic_QF_FD     : constant Solver_Logic;
    Logic_SMTPD     : constant Solver_Logic;
 
-   function Has_Context (Solver  : Z3.Solver;
-                         Context : Z3.Context) return Boolean;
-
-   function Create (Context : Z3.Context := Default_Context) return Solver;
+   function Create (Context : Z3.Context) return Solver;
 
    function Create (Logic   : Solver_Logic;
-                    Context : Z3.Context := Default_Context) return Solver;
+                    Context : Z3.Context) return Solver;
+
+   function Same_Context (Solver : Z3.Solver;
+                          Fact   : Bool_Type'Class) return Boolean;
 
    procedure Assert (Solver  : in out Z3.Solver;
-                     Fact    :        Bool_Type'Class;
-                     Context :        Z3.Context := Default_Context) with
-      Pre => Has_Context (Fact, Context);
+                     Fact    :        Bool_Type'Class) with
+      Pre => Same_Context (Solver, Fact);
 
-   function Check (Solver  : Z3.Solver;
-                   Context : Z3.Context := Default_Context) return Result with
-      Pre => Has_Context (Solver, Context);
+   function Check (Solver : Z3.Solver) return Result;
 
-   procedure Reset (Solver  : in out Z3.Solver;
-                    Context :        Z3.Context := Default_Context) with
-      Pre => Has_Context (Solver, Context);
+   procedure Reset (Solver : in out Z3.Solver);
 
    type Optimize is tagged limited private;
 
    function "+" (Optimize : Z3.Optimize) return String;
 
-   function Create (Context : Z3.Context := Default_Context) return Optimize;
+   function Create (Context : Z3.Context) return Optimize;
 
    procedure Set_Timeout (Optimize : in out Z3.Optimize;
                           Timeout  :        Natural := 1000);
@@ -536,15 +531,10 @@ private
       Pre  => Same_Context (Value),  -- GCOV_EXCL_LINE
       Post => Value'Length = To_Z3_ast_array'Result'Length;
 
-   Default_Config  : Z3.Config := (Data => z3_api_h.Z3_mk_config);
-   Default_Context : constant Context := (Data => z3_api_h.Z3_mk_context (Default_Config.Data));
-
    use type z3_api_h.Z3_context;
 
-   function Has_Context (Value   : Bool_Type;
-                         Context : Z3.Context) return Boolean is (Value.Context.Data = Context.Data);
-   function Has_Context (Solver  : Z3.Solver;
-                         Context : Z3.Context) return Boolean is (Solver.Context.Data = Context.Data);
+   function Same_Context (Solver : Z3.Solver;
+                          Fact   : Bool_Type'Class) return Boolean is (Solver.Context = Fact.Context);
 
    overriding
    function Simplified (Value : Bool_Type) return Bool_Type is (Bool (Expr_Type (Value).Simplified));
