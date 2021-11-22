@@ -457,23 +457,59 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Create (Context : Z3.Context'Class) return Solver
+   overriding
+   procedure Initialize (Solv : in out Solver)
+   is
+      use type z3_api_h.Z3_solver;
+   begin
+      if Solv.Data /= null then
+         z3_api_h.Z3_solver_inc_ref (c => Solv.Context.Data,
+                                     s => Solv.Data);
+      end if;
+   end Initialize;
+
+   overriding
+   procedure Adjust (Solv : in out Solver)
    is
    begin
-      return (Data    => z3_api_h.Z3_mk_solver (Context.Data),
-              Context => Z3.Context (Context));
+      z3_api_h.Z3_solver_inc_ref (c => Solv.Context.Data,
+                                  s => Solv.Data);
+   end Adjust;
+
+   overriding
+   procedure Finalize (Solv : in out Solver)
+   is
+   begin
+      z3_api_h.Z3_solver_dec_ref (c => Solv.Context.Data,
+                                  s => Solv.Data);
+   end Finalize;
+
+   function Create (Context : Z3.Context'Class) return Solver
+   is
+      Solver : constant Z3.Solver :=
+         Z3.Solver'(Ada.Finalization.Controlled with Data    => z3_api_h.Z3_mk_solver (Context.Data),
+                                                     Context => Z3.Context (Context));
+   begin
+      z3_api_h.Z3_solver_inc_ref (c => Solver.Context.Data,
+                                  s => Solver.Data);
+      return Solver;
    end Create;
 
    ------------------------------------------------------------------------------------------------
 
-   function Create (Logic   : Solver_Logic;
-                    Context : Z3.Context'Class) return Solver
+   function Create (Context : Z3.Context'Class;
+                    Logic   : Solver_Logic) return Solver
    is
+      Z3_Logic : constant z3_api_h.Z3_symbol :=
+         z3_api_h.Z3_mk_string_symbol (Context.Data, z3_api_h.Z3_string (Logic));
+      Solver : constant Z3.Solver :=
+         Z3.Solver'(Ada.Finalization.Controlled with Data    => z3_api_h.Z3_mk_solver_for_logic
+                                                                   (Context.Data, Z3_Logic),
+                                                     Context => Z3.Context (Context));
    begin
-      return (Data    => z3_api_h.Z3_mk_solver_for_logic
-                           (Context.Data,
-                            z3_api_h.Z3_mk_string_symbol (Context.Data, z3_api_h.Z3_string (Logic))),
-              Context => Z3.Context (Context));
+      z3_api_h.Z3_solver_inc_ref (c => Solver.Context.Data,
+                                  s => Solver.Data);
+      return Solver;
    end Create;
 
    ------------------------------------------------------------------------------------------------
