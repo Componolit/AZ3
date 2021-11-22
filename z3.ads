@@ -1,5 +1,6 @@
 with z3_api_h;
 with Ada.Iterator_Interfaces;
+with Ada.Finalization;
 
 private with Ada.Containers;
 private with Ada.Containers.Indefinite_Hashed_Maps;
@@ -13,7 +14,7 @@ package Z3 is  --  GCOV_EXCL_LINE
 
    type Long_Long_Unsigned is mod 2 ** 64;
 
-   type Context is private;
+   type Context is new Ada.Finalization.Controlled with private;
    type Result is (Result_True, Result_False, Result_Undef);
 
    type Expr_Kind is (Kind_Any,
@@ -39,8 +40,6 @@ package Z3 is  --  GCOV_EXCL_LINE
                       Sort_Bit_Vector,
                       Sort_Real,
                       Sort_Unknown);
-
-   function New_Context return Context;
 
    type Expr_Type is tagged private with
       Default_Iterator  => Iterate,
@@ -77,11 +76,12 @@ package Z3 is  --  GCOV_EXCL_LINE
    type Bool_Type is new Expr_Type with private;
    type Bool_Array is array (Natural range <>) of Bool_Type;
 
-   function Bool (Name : String; Context : Z3.Context) return Bool_Type;
-   function Bool (Value : Boolean; Context : Z3.Context) return Bool_Type;
+   function Bool (Name : String; Context : Z3.Context'Class) return Bool_Type;
+   function Bool (Value : Boolean; Context : Z3.Context'Class) return Bool_Type;
    function Bool (Expr : Expr_Type'Class) return Bool_Type with
       Pre => Sort (Expr) = Sort_Bool;
    function Same_Context (Terms : Bool_Array) return Boolean;
+
    overriding
    function Simplified (Value : Bool_Type) return Bool_Type;
 
@@ -132,12 +132,12 @@ package Z3 is  --  GCOV_EXCL_LINE
 
    type Real_Type is new Arith_Type with private;
    function Real (Name    : String;
-                  Context : Z3.Context) return Real_Type;
+                  Context : Z3.Context'Class) return Real_Type;
    function Real (Numerator : Integer;
-                  Context   : Z3.Context) return Real_Type;
+                  Context   : Z3.Context'Class) return Real_Type;
    function Real (Numerator   : Integer;
                   Denominator : Integer;
-                  Context     : Z3.Context) return Real_Type with
+                  Context     : Z3.Context'Class) return Real_Type with
       Pre => Denominator /= 0;
    function Real (Expr    : Expr_Type'Class) return Real_Type with
       Pre => Sort (Expr) in Sort_Int | Sort_Real;
@@ -149,20 +149,20 @@ package Z3 is  --  GCOV_EXCL_LINE
    type Int_Type is new Arith_Type with private;
    type Int_Array is array (Natural range <>) of Int_Type;
 
-   function Int (Name : String; Context : Z3.Context) return Int_Type;
+   function Int (Name : String; Context : Z3.Context'Class) return Int_Type;
    function Int (Value   : Long_Long_Integer;
-                 Context : Z3.Context) return Int_Type;
+                 Context : Z3.Context'Class) return Int_Type;
    function Int (Value   : Long_Long_Unsigned;
-                 Context : Z3.Context) return Int_Type;
+                 Context : Z3.Context'Class) return Int_Type;
    function Int (Expr : Expr_Type'Class) return Int_Type with
       Pre => Sort (Expr) in Sort_Int | Sort_Real;
 
    function Big_Int (Value   : String;
-                     Context : Z3.Context) return Int_Type;
+                     Context : Z3.Context'Class) return Int_Type;
 
    function Big_Int (Value   : String;
                      Base    : Positive;
-                     Context : Z3.Context) return Int_Type with
+                     Context : Z3.Context'Class) return Int_Type with
       Pre => Base >= 2 and Base <= 16;
 
    function Same_Context (Values : Int_Array) return Boolean;
@@ -235,16 +235,16 @@ package Z3 is  --  GCOV_EXCL_LINE
 
    function Bit_Vector (Name    : String;
                         Size    : Natural;
-                        Context : Z3.Context) return Bit_Vector_Type;
+                        Context : Z3.Context'Class) return Bit_Vector_Type;
 
    function Bit_Vector (Value   : Long_Long_Unsigned;
                         Size    : Natural;
-                        Context : Z3.Context) return Bit_Vector_Type with
+                        Context : Z3.Context'Class) return Bit_Vector_Type with
       Pre => Size > Value'Size;
 
    function Bit_Vector (Value   : Long_Long_Integer;
                         Size    : Natural;
-                        Context : Z3.Context) return Bit_Vector_Type with
+                        Context : Z3.Context'Class) return Bit_Vector_Type with
       Pre => Size >= Value'Size;
 
    function Bit_Vector (Value : Int_Type'Class;
@@ -369,16 +369,16 @@ package Z3 is  --  GCOV_EXCL_LINE
    Logic_QF_FD     : constant Solver_Logic;
    Logic_SMTPD     : constant Solver_Logic;
 
-   function Create (Context : Z3.Context) return Solver;
-
-   function Create (Logic   : Solver_Logic;
-                    Context : Z3.Context) return Solver;
-
    function Same_Context (Solver : Z3.Solver;
                           Fact   : Bool_Type'Class) return Boolean;
 
-   procedure Assert (Solver  : in out Z3.Solver;
-                     Fact    :        Bool_Type'Class) with
+   function Create (Context : Z3.Context'Class) return Solver;
+
+   function Create (Logic   : Solver_Logic;
+                    Context : Z3.Context'Class) return Solver;
+
+   procedure Assert (Solver : in out Z3.Solver;
+                     Fact   :        Bool_Type'Class) with
       Pre => Same_Context (Solver, Fact);
 
    function Check (Solver : Z3.Solver) return Result;
@@ -389,7 +389,7 @@ package Z3 is  --  GCOV_EXCL_LINE
 
    function "+" (Optimize : Z3.Optimize) return String;
 
-   function Create (Context : Z3.Context) return Optimize;
+   function Create (Context : Z3.Context'Class) return Optimize;
 
    procedure Set_Timeout (Optimize : in out Z3.Optimize;
                           Timeout  :        Natural := 1000);
@@ -434,15 +434,22 @@ package Z3 is  --  GCOV_EXCL_LINE
 
 private
 
-   type Config is
-      record
-         Data : z3_api_h.Z3_config;
-      end record;
+   type Reference_Counter is access Natural;
 
-   type Context is
-      record
-         Data : z3_api_h.Z3_context;
-      end record;
+   type Context is new Ada.Finalization.Controlled with record
+      Data      : z3_api_h.Z3_context;
+      Config    : z3_api_h.Z3_config;
+      Ref_Count : Reference_Counter;
+   end record;
+
+   overriding
+   procedure Initialize (Ctx : in out Context);
+
+   overriding
+   procedure Finalize (Ctx : in out Context);
+
+   overriding
+   procedure Adjust (Ctx : in out Context);
 
    type Expr_Type is tagged
       record
@@ -460,11 +467,10 @@ private
 
    type Bit_Vector_Type is new Arith_Type with null record;
 
-   type Solver is tagged limited
-      record
-         Data : z3_api_h.Z3_solver;
-         Context : Z3.Context;
-      end record;
+   type Solver is tagged limited record
+      Data : z3_api_h.Z3_solver;
+      Context : Z3.Context;
+   end record;
 
    package ICS renames Interfaces.C.Strings;
 

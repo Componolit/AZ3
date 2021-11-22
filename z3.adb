@@ -1,5 +1,6 @@
 with Interfaces.C.Extensions;
 with Ada.Strings.Hash;
+with Ada.Unchecked_Deallocation;
 with z3_optimization_h;
 with System;
 
@@ -33,26 +34,26 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Bool (Name : String; Context : Z3.Context) return Bool_Type
+   function Bool (Name : String; Context : Z3.Context'Class) return Bool_Type
    is
    begin
       return (Data    => Const (Name    => Name,
                                 Sort    => z3_api_h.Z3_mk_bool_sort (Context.Data),
                                 Context => Context.Data),
-              Context => Context);
+              Context => Z3.Context (Context));
    end Bool;
 
    ------------------------------------------------------------------------------------------------
 
-   function Bool (Value : Boolean; Context : Z3.Context) return Bool_Type
+   function Bool (Value : Boolean; Context : Z3.Context'Class) return Bool_Type
    is
    begin
       if Value then
          return (Data    => z3_api_h.Z3_mk_true (Context.Data),
-                 Context => Context);
+                 Context => Z3.Context (Context));
       end if;
       return (Data    => z3_api_h.Z3_mk_false (Context.Data),
-              Context => Context);
+              Context => Z3.Context (Context));
    end Bool;
 
    ------------------------------------------------------------------------------------------------
@@ -168,7 +169,42 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function New_Context return Context is ((Data => z3_api_h.Z3_mk_context (z3_api_h.Z3_mk_config)));
+   overriding
+   procedure Initialize (Ctx : in out Context)
+   is
+   begin
+      Ctx.Config        := z3_api_h.Z3_mk_config;
+      Ctx.Data          := z3_api_h.Z3_mk_context (Ctx.Config);
+      Ctx.Ref_Count     := new Natural;
+      Ctx.Ref_Count.all := 1;
+   end Initialize;
+
+   overriding
+   procedure Finalize (Ctx : in out Context)
+   is
+      use type z3_api_h.Z3_config;
+      procedure Free is new Ada.Unchecked_Deallocation (Natural, Reference_Counter);
+   begin
+      if Ctx.Ref_Count.all > 0 then
+         Ctx.Ref_Count.all := Ctx.Ref_Count.all - 1;
+      end if;
+      if Ctx.Ref_Count.all > 0 then
+         return;
+      end if;
+      z3_api_h.Z3_del_context (Ctx.Data);
+      Ctx.Data := null;
+      z3_api_h.Z3_del_config (Ctx.Config);
+      Ctx.Config := null;
+      Free (Ctx.Ref_Count);
+      Ctx.Ref_Count := null;
+   end Finalize;
+
+   overriding
+   procedure Adjust (Ctx : in out Context)
+   is
+   begin
+      Ctx.Ref_Count.all := Ctx.Ref_Count.all + 1;
+   end Adjust;
 
    ------------------------------------------------------------------------------------------------
 
@@ -238,25 +274,25 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Int (Name : String; Context : Z3.Context) return Int_Type
+   function Int (Name : String; Context : Z3.Context'Class) return Int_Type
    is
    begin
       return (Data    => Const (Name    => Name,
                                 Sort    => z3_api_h.Z3_mk_int_sort (Context.Data),
                                 Context => Context.Data),
-              Context => Context);
+              Context => Z3.Context (Context));
    end Int;
 
    ------------------------------------------------------------------------------------------------
 
    function Int (Value   : Long_Long_Integer;
-                 Context : Z3.Context) return Int_Type
+                 Context : Z3.Context'Class) return Int_Type
    is
    begin
       return (Data    => z3_api_h.Z3_mk_int64 (c  => Context.Data,
                                                v  => Value,
                                                ty => z3_api_h.Z3_mk_int_sort (Context.Data)),
-              Context => Context);
+              Context => Z3.Context (Context));
    end Int;
 
    ------------------------------------------------------------------------------------------------
@@ -280,13 +316,13 @@ is
    ------------------------------------------------------------------------------------------------
 
    function Int (Value   : Long_Long_Unsigned;
-                 Context : Z3.Context) return Int_Type
+                 Context : Z3.Context'Class) return Int_Type
    is
    begin
       return (Data    => z3_api_h.Z3_mk_unsigned_int64 (c  => Context.Data,
                                                         v  => Interfaces.C.Extensions.unsigned_long_long (Value),
                                                         ty => z3_api_h.Z3_mk_int_sort (Context.Data)),
-              Context => Context);
+              Context => Z3.Context (Context));
    end Int;
 
    ------------------------------------------------------------------------------------------------
@@ -421,23 +457,23 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Create (Context : Z3.Context) return Solver
+   function Create (Context : Z3.Context'Class) return Solver
    is
    begin
       return (Data    => z3_api_h.Z3_mk_solver (Context.Data),
-              Context => Context);
+              Context => Z3.Context (Context));
    end Create;
 
    ------------------------------------------------------------------------------------------------
 
    function Create (Logic   : Solver_Logic;
-                    Context : Z3.Context) return Solver
+                    Context : Z3.Context'Class) return Solver
    is
    begin
       return (Data    => z3_api_h.Z3_mk_solver_for_logic
                            (Context.Data,
                             z3_api_h.Z3_mk_string_symbol (Context.Data, z3_api_h.Z3_string (Logic))),
-              Context => Context);
+              Context => Z3.Context (Context));
    end Create;
 
    ------------------------------------------------------------------------------------------------
@@ -648,7 +684,7 @@ is
 
    ------------------------------------------------------------------------------------------------
 
-   function Create (Context : Z3.Context) return Optimize
+   function Create (Context : Z3.Context'Class) return Optimize
    is
       Opt : constant z3_api_h.Z3_optimize := z3_optimization_h.Z3_mk_optimize (Context.Data);
    begin
@@ -656,7 +692,7 @@ is
       z3_optimization_h.Z3_optimize_inc_ref (Context.Data, Opt);
       z3_optimization_h.Z3_optimize_push (Context.Data, Opt);
       return Optimize'(Data               => Opt,
-                       Context            => Context,
+                       Context            => Z3.Context (Context),
                        Objectives         => Int_Maps.Empty_Map,
                        Backtracking_Count => 0);
    end Create;
@@ -880,13 +916,13 @@ is
    ------------------------------------------------------------------------------------------------
 
    function Big_Int (Value   : String;
-                     Context : Z3.Context) return Int_Type is (Big_Int (Value, 10, Context));
+                     Context : Z3.Context'Class) return Int_Type is (Big_Int (Value, 10, Context));
 
    ------------------------------------------------------------------------------------------------
 
    function Big_Int (Value   : String;
                      Base    : Positive;
-                     Context : Z3.Context) return Int_Type
+                     Context : Z3.Context'Class) return Int_Type
    is
       Position : Long_Long_Integer := 0;
       Result   : Int_Type;
@@ -953,41 +989,41 @@ is
 
    function Bit_Vector (Name    : String;
                         Size    : Natural;
-                        Context : Z3.Context) return Bit_Vector_Type
+                        Context : Z3.Context'Class) return Bit_Vector_Type
    is
    begin
       return (Data    => Const (Name    => Name,
                                 Sort    => z3_api_h.Z3_mk_bv_sort (Context.Data, Interfaces.C.unsigned (Size)),
                                 Context => Context.Data),
-              Context => Context);
+              Context => Z3.Context (Context));
    end Bit_Vector;
 
    ------------------------------------------------------------------------------------------------
 
    function Bit_Vector (Value   : Long_Long_Unsigned;
                         Size    : Natural;
-                        Context : Z3.Context) return Bit_Vector_Type
+                        Context : Z3.Context'Class) return Bit_Vector_Type
    is
    begin
       return (Data    => z3_api_h.Z3_mk_unsigned_int64 (c  => Context.Data,
                                                         v  => Interfaces.C.Extensions.unsigned_long_long (Value),
                                                         ty => z3_api_h.Z3_mk_bv_sort
                                                            (Context.Data, Interfaces.C.unsigned (Size))),
-              Context => Context);
+              Context => Z3.Context (Context));
    end Bit_Vector;
 
    ------------------------------------------------------------------------------------------------
 
    function Bit_Vector (Value   : Long_Long_Integer;
                         Size    : Natural;
-                        Context : Z3.Context) return Bit_Vector_Type
+                        Context : Z3.Context'Class) return Bit_Vector_Type
    is
    begin
       return (Data    => z3_api_h.Z3_mk_int64 (c  => Context.Data,
                                                v  => Value,
                                                ty => z3_api_h.Z3_mk_bv_sort
                                                   (Context.Data, Interfaces.C.unsigned (Size))),
-              Context => Context);
+              Context => Z3.Context (Context));
    end Bit_Vector;
 
    ------------------------------------------------------------------------------------------------
@@ -1184,31 +1220,31 @@ is
    ------------------------------------------------------------------------------------------------
 
    function Real (Name    : String;
-                  Context : Z3.Context) return Real_Type
+                  Context : Z3.Context'Class) return Real_Type
    is
    begin
       return (Data    => Const (Name    => Name,
                                 Sort    => z3_api_h.Z3_mk_real_sort (Context.Data),
                                 Context => Context.Data),
-              Context => Context);
+              Context => Z3.Context (Context));
    end Real;
 
    ------------------------------------------------------------------------------------------------
 
    function Real (Numerator : Integer;
-                  Context   : Z3.Context) return Real_Type is (Real (Numerator, 1, Context));
+                  Context   : Z3.Context'Class) return Real_Type is (Real (Numerator, 1, Context));
 
    ------------------------------------------------------------------------------------------------
 
    function Real (Numerator   : Integer;
                   Denominator : Integer;
-                  Context     : Z3.Context) return Real_Type
+                  Context     : Z3.Context'Class) return Real_Type
    is
    begin
       return (Data    => z3_api_h.Z3_mk_real (c   => Context.Data,
                                               num => Interfaces.C.int (Numerator),
                                               den => Interfaces.C.int (Denominator)),
-              Context => Context);
+              Context => Z3.Context (Context));
    end Real;
 
    ------------------------------------------------------------------------------------------------
