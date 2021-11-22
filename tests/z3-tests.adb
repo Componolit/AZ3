@@ -7,7 +7,7 @@ package body Z3.Tests is
    subtype LLI is Long_Long_Integer;
    subtype LLU is Long_Long_Unsigned;
 
-   Ctx : constant Context := New_Context;
+   Ctx : Context;
 
    function Simp (V : Bool_Type) return Bool_Type is
    begin
@@ -271,7 +271,7 @@ package body Z3.Tests is
 
    procedure Incompatible_Context
    is
-      C1     : constant Context := New_Context;
+      C1     : Context;
       Result : constant Bool_Type := Bool (True, Ctx) = Bool (False, C1);
    begin
       pragma Unreferenced (Result);
@@ -589,12 +589,12 @@ package body Z3.Tests is
       Optimize.Maximize (Int ("X", Ctx));
       Optimize.Check (Result);
       Assert (Result = Result_True, "Invalid result");
-      Assert (Optimize.Upper (Int ("X", Ctx)) = Int (LLU'(19), Ctx), "Invalid optimize value");
+      Assert (Int (Optimize.Upper (Int ("X", Ctx))) = Int (LLU'(19), Ctx), "Invalid optimize value");
       Optimize.Pop;
       Optimize.Maximize (Int ("X", Ctx));
       Optimize.Check (Result);
       Assert (Result = Result_True, "Invalid result");
-      Assert (Optimize.Upper (Int ("X", Ctx)) = Int (LLU'(99), Ctx), "Invalid optimize value");
+      Assert (Int (Optimize.Upper (Int ("X", Ctx))) = Int (LLU'(99), Ctx), "Invalid optimize value");
       Optimize.Push;
       Optimize.Reset;
       Assert_Exception (Optimize_Invalid_Pop'Access, "Too many pops not detected");
@@ -617,7 +617,7 @@ package body Z3.Tests is
       Optimize.Maximize (Objective);
       Optimize.Check (Result);
       Assert (Result = Result_True, "Invalid result");
-      Assert (Optimize.Upper (Objective) = Int (LLU'(88), Ctx), "Invalid maximiize value");
+      Assert (Int (Optimize.Upper (Objective)) = Int (LLU'(88), Ctx), "Invalid maximiize value");
       declare
          Constant_Count : constant Natural := Optimize.Get_Number_Of_Values;
          Constants      : Int_Array (1 .. Constant_Count);
