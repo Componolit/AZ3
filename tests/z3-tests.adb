@@ -760,7 +760,7 @@ package body Z3.Tests is
       pragma Unreferenced (T);
       procedure Test_Create (Logic : Solver_Logic)
       is
-         Ignore_Solver : constant Solver := Create (Logic, Ctx);
+         Ignore_Solver : constant Solver := Create (Ctx, Logic);
       begin
          null;
       end Test_Create;

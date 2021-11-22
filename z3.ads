@@ -335,8 +335,6 @@ package Z3 is  --  GCOV_EXCL_LINE
               and Size (Left) = Size (Right);
 
    --  Solver
-   type Solver is tagged limited private;
-
    type Solver_Logic is private;
 
    Logic_AUFLIA    : constant Solver_Logic;
@@ -369,13 +367,15 @@ package Z3 is  --  GCOV_EXCL_LINE
    Logic_QF_FD     : constant Solver_Logic;
    Logic_SMTPD     : constant Solver_Logic;
 
-   function Same_Context (Solver : Z3.Solver;
-                          Fact   : Bool_Type'Class) return Boolean;
+   type Solver is new Ada.Finalization.Controlled with private;
 
    function Create (Context : Z3.Context'Class) return Solver;
 
-   function Create (Logic   : Solver_Logic;
-                    Context : Z3.Context'Class) return Solver;
+   function Create (Context : Z3.Context'Class;
+                    Logic   : Solver_Logic) return Solver;
+
+   function Same_Context (Solver : Z3.Solver;
+                          Fact   : Bool_Type'Class) return Boolean;
 
    procedure Assert (Solver : in out Z3.Solver;
                      Fact   :        Bool_Type'Class) with
@@ -467,10 +467,19 @@ private
 
    type Bit_Vector_Type is new Arith_Type with null record;
 
-   type Solver is tagged limited record
-      Data : z3_api_h.Z3_solver;
+   type Solver is new Ada.Finalization.Controlled with record
       Context : Z3.Context;
+      Data : z3_api_h.Z3_solver;
    end record;
+
+   overriding
+   procedure Initialize (Solv : in out Solver);
+
+   overriding
+   procedure Finalize (Solv : in out Solver);
+
+   overriding
+   procedure Adjust (Solv : in out Solver);
 
    package ICS renames Interfaces.C.Strings;
 
