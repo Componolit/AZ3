@@ -727,11 +727,35 @@ is
       --  ISSUE: Componolit/AZ3#9
       z3_optimization_h.Z3_optimize_inc_ref (Context.Data, Opt);
       z3_optimization_h.Z3_optimize_push (Context.Data, Opt);
-      return Optimize'(Data               => Opt,
-                       Context            => Z3.Context (Context),
-                       Objectives         => Int_Maps.Empty_Map,
-                       Backtracking_Count => 0);
+      return Optimize'(Ada.Finalization.Controlled with Data               => Opt,
+                                                        Context            => Z3.Context (Context),
+                                                        Objectives         => Int_Maps.Empty_Map,
+                                                        Backtracking_Count => 0);
    end Create;
+
+   overriding
+   procedure Initialize (Opt : in out Optimize)
+   is
+      use type z3_api_h.Z3_optimize;
+   begin
+      if Opt.Data /= null then
+         z3_optimization_h.Z3_optimize_inc_ref (Opt.Context.Data, Opt.Data);
+      end if;
+   end Initialize;
+
+   overriding
+   procedure Adjust (Opt : in out Optimize)
+   is
+   begin
+      z3_optimization_h.Z3_optimize_inc_ref (Opt.Context.Data, Opt.Data);
+   end Adjust;
+
+   overriding
+   procedure Finalize (Opt : in out Optimize)
+   is
+   begin
+      z3_optimization_h.Z3_optimize_inc_ref (Opt.Context.Data, Opt.Data);
+   end Finalize;
 
    function "+" (Optimize : Z3.Optimize) return String
    is
