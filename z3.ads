@@ -367,7 +367,7 @@ package Z3 is  --  GCOV_EXCL_LINE
    Logic_QF_FD     : constant Solver_Logic;
    Logic_SMTPD     : constant Solver_Logic;
 
-   type Solver is new Ada.Finalization.Controlled with private;
+   type Solver (<>) is new Ada.Finalization.Controlled with private;
 
    function Create (Context : Z3.Context'Class) return Solver;
 
@@ -385,7 +385,7 @@ package Z3 is  --  GCOV_EXCL_LINE
 
    procedure Reset (Solver : in out Z3.Solver);
 
-   type Optimize is tagged limited private;
+   type Optimize (<>) is new Ada.Finalization.Controlled with private;
 
    function "+" (Optimize : Z3.Optimize) return String;
 
@@ -529,12 +529,21 @@ private
    package Int_Maps is new Ada.Containers.Indefinite_Hashed_Maps
       (Z3.Arith_Type'Class, Objective_Data, Hash, "=");
 
-   type Optimize is tagged limited record
+   type Optimize is new Ada.Finalization.Controlled with record
       Data               : z3_api_h.Z3_optimize;
       Context            : Z3.Context;
       Objectives         : Int_Maps.Map;
       Backtracking_Count : Natural;
    end record;
+
+   overriding
+   procedure Initialize (Opt : in out Optimize);
+
+   overriding
+   procedure Adjust (Opt : in out Optimize);
+
+   overriding
+   procedure Finalize (Opt : in out Optimize);
 
    function To_Z3_ast_array (Value : Bool_Array) return Z3_ast_array with
       Pre  => Same_Context (Value),  -- GCOV_EXCL_LINE
