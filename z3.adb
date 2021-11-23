@@ -769,7 +769,7 @@ is
    procedure Set_Timeout (Optimize : in out Z3.Optimize;
                           Timeout  :        Natural := 1000)
    is
-      Param_Name : constant chars_ptr := New_String ("timeout");
+      Param_Name : chars_ptr                   := New_String ("timeout");
       Params     : constant z3_api_h.Z3_params := z3_api_h.Z3_mk_params (Optimize.Context.Data);
    begin
       z3_api_h.Z3_params_set_uint
@@ -778,6 +778,7 @@ is
           z3_api_h.Z3_mk_string_symbol (Optimize.Context.Data, z3_api_h.Z3_string (Param_Name)),
           Interfaces.C.unsigned (Timeout));
       z3_optimization_h.Z3_optimize_set_params (Optimize.Context.Data, Optimize.Data, Params);
+      Free (Param_Name);
    end Set_Timeout;
 
    ------------------------------------------------------------------------------------------------
