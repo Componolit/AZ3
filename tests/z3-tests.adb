@@ -813,6 +813,46 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
+   procedure Test_Reference_Counting (T : in out Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      Context  : Z3.Context;
+      Solver   : constant Z3.Solver   := Create (Context);
+      Optimize : constant Z3.Optimize := Create (Context);
+
+      procedure Copy_Ctx (Local_Ctx : Z3.Context)
+      is
+         Ctx2          : Z3.Context;
+         Solver        : Z3.Solver := Create (Context);
+         Unused_Result : Result;
+      begin
+         Ctx2 := Local_Ctx;
+         pragma Inspection_Point (Ctx2);
+         Solver.Assert (Bool ("A", Context));
+         Unused_Result := Solver.Check;
+      end Copy_Ctx;
+      procedure Copy_Solver (Local_Solver : Z3.Solver)
+      is
+         Solver2 : Z3.Solver := Create (Context);
+      begin
+         Solver2 := Local_Solver;
+         pragma Inspection_Point (Solver2);
+      end Copy_Solver;
+      procedure Copy_Optimize (Local_Optimize : Z3.Optimize)
+      is
+         Optimize2 : Z3.Optimize := Create (Context);
+      begin
+         Optimize2 := Local_Optimize;
+         pragma Inspection_Point (Optimize2);
+      end Copy_Optimize;
+   begin
+      Copy_Ctx (Context);
+      Copy_Solver (Solver);
+      Copy_Optimize (Optimize);
+   end Test_Reference_Counting;
+
+   ---------------------------------------------------------------------------
+
    overriding
    procedure Register_Tests (T : in out Test_Case)
    is
@@ -838,6 +878,7 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
       Register_Routine (T, Test_Big_Int'Access, "Big Integer");
       Register_Routine (T, Test_Logic'Access, "Logic");
       Register_Routine (T, Test_Real'Access, "Real");
+      Register_Routine (T, Test_Reference_Counting'Access, "Reference Counting");
    end Register_Tests;
 
    ---------------------------------------------------------------------------
