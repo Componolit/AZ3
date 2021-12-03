@@ -10,7 +10,7 @@ GCOVR_OPTS = \
 	--exclude 'contrib/*'
 
 test: build obj/tests/tests
-	@obj/tests/tests
+	@ASAN_OPTIONS=detect_leak=1 LSAN_OPTIONS=suppressions=tests/asan_suppression.txt obj/tests/tests
 	@gcovr . $(GCOVR_OPTS)
 
 z3/z3/build/Makefile:
