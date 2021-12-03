@@ -150,9 +150,9 @@ package Z3 is  --  GCOV_EXCL_LINE
    type Int_Array is array (Natural range <>) of Int_Type;
 
    function Int (Name : String; Context : Z3.Context'Class) return Int_Type;
-   function Int (Value   : Long_Long_Integer;
+   function Int (Value   : Long_Long_Integer;  --  GCOV_EXCL_LINE
                  Context : Z3.Context'Class) return Int_Type;
-   function Int (Value   : Long_Long_Unsigned;
+   function Int (Value   : Long_Long_Unsigned;  --  GCOV_EXCL_LINE
                  Context : Z3.Context'Class) return Int_Type;
    function Int (Expr : Expr_Type'Class) return Int_Type with
       Pre => Sort (Expr) in Sort_Int | Sort_Real;
@@ -473,9 +473,6 @@ private
    end record;
 
    overriding
-   procedure Initialize (Solv : in out Solver);
-
-   overriding
    procedure Finalize (Solv : in out Solver);
 
    overriding
@@ -535,9 +532,6 @@ private
       Objectives         : Int_Maps.Map;
       Backtracking_Count : Natural;
    end record;
-
-   overriding
-   procedure Initialize (Opt : in out Optimize);
 
    overriding
    procedure Adjust (Opt : in out Optimize);
