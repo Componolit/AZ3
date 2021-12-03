@@ -24,7 +24,8 @@ build: z3/z3/build/libz3.so
 
 clean:
 	gnatclean -P tests/tests.gpr
+	gprclean -P tests/aunit/lib/gnat/aunit.gpr
 	rm -rf obj
 
 clean_z3:
-	rm -rf z3/z3/build z3/z3/src/util/z3_version.h
+	rm -rf z3/z3/build
