@@ -11,12 +11,12 @@ project Tests is
    for Exec_Dir use "../obj/tests";
 
    package Compiler is
-      for Default_Switches ("Ada") use Z3_Switches.Compiler_Switches;
+      for Default_Switches ("Ada") use Z3_Switches.Compiler_Switches & ("--coverage");
    end Compiler;
 
    package Builder is
       for Default_Switches ("Ada") use ("-O0", "-g", "-gnata");
-      for Global_Compilation_Switches ("Ada") use ("-O0", "-g", "--coverage", "-fsanitize=address", "-fno-omit-frame-pointer");
+      for Global_Compilation_Switches ("Ada") use ("-O0", "-g", "-fsanitize=address", "-fno-omit-frame-pointer");
    end Builder;
 
    package Linker is

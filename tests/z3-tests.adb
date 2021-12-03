@@ -1,6 +1,6 @@
 with AUnit.Assertions;
 
-package body Z3.Tests is
+package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    use AUnit.Assertions;
 

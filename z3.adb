@@ -458,23 +458,14 @@ is
    ------------------------------------------------------------------------------------------------
 
    overriding
-   procedure Initialize (Solv : in out Solver)
-   is
-      use type z3_api_h.Z3_solver;
-   begin
-      if Solv.Data /= null then
-         z3_api_h.Z3_solver_inc_ref (c => Solv.Context.Data,
-                                     s => Solv.Data);
-      end if;
-   end Initialize;
-
-   overriding
    procedure Adjust (Solv : in out Solver)
    is
    begin
       z3_api_h.Z3_solver_inc_ref (c => Solv.Context.Data,
                                   s => Solv.Data);
    end Adjust;
+
+   ------------------------------------------------------------------------------------------------
 
    overriding
    procedure Finalize (Solv : in out Solver)
@@ -483,6 +474,8 @@ is
       z3_api_h.Z3_solver_dec_ref (c => Solv.Context.Data,
                                   s => Solv.Data);
    end Finalize;
+
+   ------------------------------------------------------------------------------------------------
 
    function Create (Context : Z3.Context'Class) return Solver
    is
@@ -733,15 +726,7 @@ is
                                                         Backtracking_Count => 0);
    end Create;
 
-   overriding
-   procedure Initialize (Opt : in out Optimize)
-   is
-      use type z3_api_h.Z3_optimize;
-   begin
-      if Opt.Data /= null then
-         z3_optimization_h.Z3_optimize_inc_ref (Opt.Context.Data, Opt.Data);
-      end if;
-   end Initialize;
+   ------------------------------------------------------------------------------------------------
 
    overriding
    procedure Adjust (Opt : in out Optimize)
@@ -750,12 +735,16 @@ is
       z3_optimization_h.Z3_optimize_inc_ref (Opt.Context.Data, Opt.Data);
    end Adjust;
 
+   ------------------------------------------------------------------------------------------------
+
    overriding
    procedure Finalize (Opt : in out Optimize)
    is
    begin
       z3_optimization_h.Z3_optimize_inc_ref (Opt.Context.Data, Opt.Data);
    end Finalize;
+
+   ------------------------------------------------------------------------------------------------
 
    function "+" (Optimize : Z3.Optimize) return String
    is
