@@ -367,69 +367,99 @@ package Z3 is  --  GCOV_EXCL_LINE
    Logic_QF_FD     : constant Solver_Logic;
    Logic_SMTPD     : constant Solver_Logic;
 
-   type Solver (<>) is new Ada.Finalization.Controlled with private;
+   type Solver is new Ada.Finalization.Controlled with private;
 
-   function Create (Context : Z3.Context'Class) return Solver;
+   function Initialized (Solver : Z3.Solver) return Boolean;
+
+   function Create (Context : Z3.Context'Class) return Solver with
+      Post => Initialized (Create'Result);
 
    function Create (Context : Z3.Context'Class;
-                    Logic   : Solver_Logic) return Solver;
+                    Logic   : Solver_Logic) return Solver with
+      Post => Initialized (Create'Result);
 
    function Same_Context (Solver : Z3.Solver;
-                          Fact   : Bool_Type'Class) return Boolean;
+                          Fact   : Bool_Type'Class) return Boolean with
+      Pre => Initialized (Solver);
 
    procedure Assert (Solver : in out Z3.Solver;
                      Fact   :        Bool_Type'Class) with
-      Pre => Same_Context (Solver, Fact);
+      Pre  => Initialized (Solver) and then Same_Context (Solver, Fact),
+      Post => Initialized (Solver);
 
-   function Check (Solver : Z3.Solver) return Result;
+   function Check (Solver : Z3.Solver) return Result with
+      Pre => Initialized (Solver);
 
-   procedure Reset (Solver : in out Z3.Solver);
+   procedure Reset (Solver : in out Z3.Solver) with
+      Pre  => Initialized (Solver),
+      Post => Initialized (Solver);
 
-   type Optimize (<>) is new Ada.Finalization.Controlled with private;
+   type Optimize is new Ada.Finalization.Controlled with private;
 
-   function "+" (Optimize : Z3.Optimize) return String;
+   function Initialized (Optimize : Z3.Optimize) return Boolean;
 
-   function Create (Context : Z3.Context'Class) return Optimize;
+   function "+" (Optimize : Z3.Optimize) return String with
+      Pre => Initialized (Optimize);
+
+   function Create (Context : Z3.Context'Class) return Optimize with
+      Post => Initialized (Create'Result);
 
    procedure Set_Timeout (Optimize : in out Z3.Optimize;
-                          Timeout  :        Natural := 1000);
+                          Timeout  :        Natural := 1000) with
+      Pre => Initialized (Optimize);
 
    function Same_Context (Optimize : Z3.Optimize;
-                          Term     : Z3.Expr_Type'Class) return Boolean;
+                          Term     : Z3.Expr_Type'Class) return Boolean with
+      Pre => Initialized (Optimize);
 
    procedure Assert (Optimize : in out Z3.Optimize;
                      Fact     :        Bool_Type'Class) with
-      Pre => Same_Context (Optimize, Fact);
+      Pre  => Initialized (Optimize) and then Same_Context (Optimize, Fact),
+      Post => Initialized (Optimize);
 
    procedure Minimize (Optimize : in out Z3.Optimize;
                        Term     :        Z3.Arith_Type'Class) with
-      Pre => Same_Context (Optimize, Term);
+      Pre  => Initialized (Optimize) and then Same_Context (Optimize, Term),
+      Post => Initialized (Optimize);
 
    procedure Maximize (Optimize : in out Z3.Optimize;
                        Term     :        Z3.Arith_Type'Class) with
-      Pre => Same_Context (Optimize, Term);
+      Pre  => Initialized (Optimize) and then Same_Context (Optimize, Term),
+      Post => Initialized (Optimize);
 
    procedure Check (Optimize : in out Z3.Optimize;
-                    Result   :    out Z3.Result);
+                    Result   :    out Z3.Result) with
+      Pre  => Initialized (Optimize),
+      Post => Initialized (Optimize);
 
    function Lower (Optimize  : Z3.Optimize;
-                   Objective : Z3.Arith_Type'Class) return Z3.Int_Type'Class;
+                   Objective : Z3.Arith_Type'Class) return Z3.Int_Type'Class with
+      Pre => Initialized (Optimize);
 
    function Upper (Optimize  : Z3.Optimize;
-                   Objective : Z3.Arith_Type'Class) return Z3.Int_Type'Class;
+                   Objective : Z3.Arith_Type'Class) return Z3.Int_Type'Class with
+      Pre => Initialized (Optimize);
 
-   procedure Reset (Optimize : in out Z3.Optimize);
+   procedure Reset (Optimize : in out Z3.Optimize) with
+      Pre  => Initialized (Optimize),
+      Post => Initialized (Optimize);
 
-   procedure Push (Optimize : in out Z3.Optimize);
+   procedure Push (Optimize : in out Z3.Optimize) with
+      Pre  => Initialized (Optimize),
+      Post => Initialized (Optimize);
 
-   procedure Pop (Optimize : in out Z3.Optimize);
+   procedure Pop (Optimize : in out Z3.Optimize) with
+      Pre  => Initialized (Optimize),
+      Post => Initialized (Optimize);
 
-   function Get_Number_Of_Values (Optimize : Z3.Optimize) return Natural;
+   function Get_Number_Of_Values (Optimize : Z3.Optimize) return Natural with
+      Pre => Initialized (Optimize);
 
    procedure Get_Values (Optimize  :     Z3.Optimize;
                          Constants : out Int_Array;
                          Values    : out Int_Array) with
-      Pre => Constants'Length = Get_Number_Of_Values (Optimize)
+      Pre => Initialized (Optimize)
+             and then Constants'Length = Get_Number_Of_Values (Optimize)
              and then Values'Length = Get_Number_Of_Values (Optimize);
 
 private

@@ -477,6 +477,15 @@ is
 
    ------------------------------------------------------------------------------------------------
 
+   function Initialized (Solver : Z3.Solver) return Boolean
+   is
+      use type z3_api_h.Z3_solver;
+   begin
+      return Solver.Data /= null;
+   end Initialized;
+
+   ------------------------------------------------------------------------------------------------
+
    function Create (Context : Z3.Context'Class) return Solver
    is
       Solver : constant Z3.Solver :=
@@ -713,17 +722,27 @@ is
 
    ------------------------------------------------------------------------------------------------
 
+   function Initialized (Optimize : Z3.Optimize) return Boolean
+   is
+      use type z3_api_h.Z3_optimize;
+   begin
+      return Optimize.Data /= null;
+   end Initialized;
+
+   ------------------------------------------------------------------------------------------------
+
    function Create (Context : Z3.Context'Class) return Optimize
    is
       Opt : constant z3_api_h.Z3_optimize := z3_optimization_h.Z3_mk_optimize (Context.Data);
+      Optimize : constant Z3.Optimize :=
+         Z3.Optimize'(Ada.Finalization.Controlled with Data               => Opt,
+                                                       Context            => Z3.Context (Context),
+                                                       Objectives         => Int_Maps.Empty_Map,
+                                                       Backtracking_Count => 0);
    begin
-      --  ISSUE: Componolit/AZ3#9
-      z3_optimization_h.Z3_optimize_inc_ref (Context.Data, Opt);
-      z3_optimization_h.Z3_optimize_push (Context.Data, Opt);
-      return Optimize'(Ada.Finalization.Controlled with Data               => Opt,
-                                                        Context            => Z3.Context (Context),
-                                                        Objectives         => Int_Maps.Empty_Map,
-                                                        Backtracking_Count => 0);
+      z3_optimization_h.Z3_optimize_inc_ref (Optimize.Context.Data, Optimize.Data);
+      z3_optimization_h.Z3_optimize_push (Optimize.Context.Data, Optimize.Data);
+      return Optimize;
    end Create;
 
    ------------------------------------------------------------------------------------------------
@@ -741,7 +760,7 @@ is
    procedure Finalize (Opt : in out Optimize)
    is
    begin
-      z3_optimization_h.Z3_optimize_inc_ref (Opt.Context.Data, Opt.Data);
+      z3_optimization_h.Z3_optimize_dec_ref (Opt.Context.Data, Opt.Data);
    end Finalize;
 
    ------------------------------------------------------------------------------------------------
