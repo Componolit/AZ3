@@ -38,9 +38,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
-   procedure Test_Booleans (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Booleans (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced  (T);
       X : constant Bool_Type := Bool ("X", Ctx);
    begin
       Assert (Simp (Bool (True, Ctx) = Bool (False, Ctx)) = Bool (False, Ctx), "Contradiction not false");
@@ -68,9 +67,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
-   procedure Test_Integer (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Integer (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced  (T);
    begin
       Assert (Simp (Int (LLI'(1), Ctx) = Int (LLI'(1), Ctx)) = Bool (True, Ctx), "1 != 1");
       Assert (Simp (Int (LLI'(1), Ctx) = Int (LLI'(2), Ctx)) = Bool (False, Ctx), "1 == 2");
@@ -114,9 +112,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
-   procedure Test_Unsigned (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Unsigned (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
    begin
       Assert (Simp (Int (LLU'(1), Ctx) = Int (LLU'(1), Ctx)) = Bool (True, Ctx), "1 != 1");
       Assert (Simp (Int (LLU'(1), Ctx) = Int (LLU'(2), Ctx)) = Bool (False, Ctx), "1 == 2");
@@ -160,9 +157,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
-   procedure Test_Bit_Vector (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Bit_Vector (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced  (T);
    begin
       Assert (Simp (Bv (LLI'(1)) = Bv (LLI'(1))) = Bool (True, Ctx), "1 != 1");
       Assert (Simp (Bv (LLI'(1)) = Bv (LLI'(2))) = Bool (False, Ctx), "1 == 2");
@@ -199,9 +195,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
-   procedure Test_Unsigned_Bit_Vector (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Unsigned_Bit_Vector (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
    begin
       Assert (Simp (Bv (LLU'(1)) = Bv (LLU'(1))) = Bool (True, Ctx), "1 != 1");
       Assert (Simp (Bv (LLU'(1)) = Bv (LLU'(2))) = Bool (False, Ctx), "1 == 2");
@@ -240,9 +235,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
-   procedure Test_Solver (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Solver (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced  (T);
       S : Solver := Create (Ctx);
    begin
       S.Assert (Bool (False, Ctx));
@@ -277,9 +271,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
       pragma Unreferenced (Result);
    end Incompatible_Context;
 
-   procedure Test_Conflicting_Contexts (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Conflicting_Contexts (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced  (T);
    begin
       Assert_Exception (Incompatible_Context'Access,
                         "Incompatible contexts not detected");
@@ -287,9 +280,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
-   procedure Test_String_Representation (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_String_Representation (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced  (T);
    begin
       Assert (+Int (LLI'(234), Ctx) = "234", "invalid boolean string representation");
       Assert (+(Int (LLI'(7), Ctx) + Int (LLI'(15), Ctx)) = "(+ 7 15)", "invalid integer string representation");
@@ -321,9 +313,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
       null; --  GCOV_EXCL_LINE
    end Negative_Bit_Vector;
 
-   procedure Test_Value (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Value (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced  (T);
    begin
       Assert (Int (LLI'(234), Ctx).Value = LLI'(234), "invalid integer value");
       Assert (Int (LLI'(-1234567), Ctx).Value = LLI'(-1234567), "invalid negative integer value");
@@ -348,9 +339,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
-   procedure Test_Substitute (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Substitute (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
       Expr     : Bool_Type := Int (LLI'(1), Ctx) < Int ("A", Ctx);
       Expected : Bool_Type := Int (LLI'(1), Ctx) < Int ("B", Ctx);
       Result   : Bool_Type := Bool (Substitute (Expr, Int ("A", Ctx), Int ("B", Ctx)));
@@ -404,9 +394,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
       Unused := Int (Term (Unused, 2));
    end Term_Out_Of_Bounds;
 
-   procedure Test_Terms (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Terms (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
       I_Arg_1 : constant Int_Type   := Int ("A", Ctx);
       I_Arg_2 : constant Int_Type   := Int ("B", Ctx);
       I_Arg_3 : constant Int_Type   := Int (LLU'(2), Ctx);
@@ -467,9 +456,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
-   procedure Test_Kind (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Kind (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
    begin
       Assert (Kind (Bool (True, Ctx)) = Kind_Constant, "invalid bool constant");
       Assert (Kind (Bool (False, Ctx)) = Kind_Constant, "invalid bool constant");
@@ -518,9 +506,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
-   procedure Test_Optimize (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Optimize (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
       Optimize : Z3.Optimize := Create (Ctx);
       Result   : Z3.Result;
    begin
@@ -577,9 +564,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
       Optimize.Pop;
    end Optimize_Invalid_Pop;
 
-   procedure Test_Optimize_Backtrack (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Optimize_Backtrack (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
       Optimize : Z3.Optimize := Create (Ctx);
       Result   : Z3.Result;
    begin
@@ -602,9 +588,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
-   procedure Test_Optimize_Multiple_Values (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Optimize_Multiple_Values (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
       Optimize           : Z3.Optimize        := Create (Ctx);
       Result             : Z3.Result;
       Objective          : constant Int_Type  := Int ("A", Ctx) - Int ("B", Ctx);
@@ -631,9 +616,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
-   procedure Test_Optimize_String (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Optimize_String (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
       Optimize        : Z3.Optimize := Create (Ctx);
       Ignore_Result   : Z3.Result;
       Image           : constant String :=
@@ -666,9 +650,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
       Ignore := Bool (I);
    end Invalid_Int;
 
-   procedure Test_Sort (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Sort (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
       B : constant Expr_Type'Class := Bool ("B", Ctx);
       I : constant Expr_Type'Class := Int ("I", Ctx);
    begin
@@ -724,9 +707,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
       Ignore := Big_Int ("a53f__ffff_912e", 16, Ctx);
    end Test_Invalid_Big_Int_Double_Underscore; --  GCOV_EXCL_LINE
 
-   procedure Test_Big_Int (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Big_Int (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
    begin
       Assert (Big_Int ("0", Ctx) = Int (LLU'(0), Ctx), "Invalid big integer (0)");
       Assert (Big_Int ("1", Ctx) = Int (LLU'(1), Ctx), "Invalid big integer (1)");
@@ -755,9 +737,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
-   procedure Test_Logic (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Logic (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
       procedure Test_Create (Logic : Solver_Logic)
       is
          Ignore_Solver : constant Solver := Create (Ctx, Logic);
@@ -798,9 +779,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
-   procedure Test_Real (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Real (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
    begin
       Assert (Sort (Real ("A", Ctx)) = Sort_Real, "Invalid sort for Real");
       Assert (Real (1, Ctx) = Simplified (Real (Int (LLU'(1), Ctx))), "Real (1) /= Real (Int (1))");
@@ -813,9 +793,8 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
-   procedure Test_Reference_Counting (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Reference_Counting (Unused_T : in out Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
       Context  : Z3.Context;
       Solver   : constant Z3.Solver   := Create (Context);
       Optimize : constant Z3.Optimize := Create (Context);
@@ -886,7 +865,6 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
    overriding
    function Name (T : Test_Case) return Test_String
    is
-      pragma Unreferenced  (T);
    begin
       return Format ("Z3 Tests");
    end Name;
