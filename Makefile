@@ -1,4 +1,3 @@
-GPRBUILD ?= gprbuild
 GPRBUILD_OPTS = -s -p -j0
 Z3_TEST_OPTS = -fsanitize=address -static-libasan -fno-omit-frame-pointer
 
@@ -20,10 +19,10 @@ z3/z3/build/libz3.so: z3/z3/build/Makefile
 	make -C z3/z3/build -j$(shell nproc)
 
 build: z3/z3/build/libz3.so
-	@$(GPRBUILD) $(GPRBUILD_OPTS) -P tests/tests
+	@gprbuild $(GPRBUILD_OPTS) -P tests/tests
 
 clean:
-	gnatclean -P tests/tests.gpr
+	gprclean -P tests/tests.gpr
 	gprclean -P tests/aunit/lib/gnat/aunit.gpr
 	rm -rf obj
 
