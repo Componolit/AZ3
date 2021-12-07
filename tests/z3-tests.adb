@@ -793,6 +793,9 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
+   --  This test doesn't have assertions as it only tests assignments and scoping
+   --  of the types that implement reference counting. It is checked by the
+   --  address sanitizer.
    procedure Test_Reference_Counting (Unused_T : in out Test_Cases.Test_Case'Class)
    is
       Context  : Z3.Context;
