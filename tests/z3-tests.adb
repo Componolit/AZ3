@@ -235,6 +235,13 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
+   procedure Uninitialized_Solver
+   is
+      S : Solver;
+   begin
+      S.Reset;
+   end Uninitialized_Solver;
+
    procedure Test_Solver (Unused_T : in out Test_Cases.Test_Case'Class)
    is
       S : Solver := Create (Ctx);
@@ -259,6 +266,7 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
       S.Reset;
       S.Assert (Int (Int ("X", Ctx) ** Int ("Y", Ctx)) >= Int ("X", Ctx));
       Assert (S.Check = Result_Undef, "expected Undef");
+      Assert_Exception (Uninitialized_Solver'Access, "No exception raised on uninitialized solver");
    end Test_Solver;
 
    ---------------------------------------------------------------------------
@@ -506,6 +514,13 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
 
    ---------------------------------------------------------------------------
 
+   procedure Uninitialized_Optimize
+   is
+      O : Optimize;
+   begin
+      O.Reset;
+   end Uninitialized_Optimize;
+
    procedure Test_Optimize (Unused_T : in out Test_Cases.Test_Case'Class)
    is
       Optimize : Z3.Optimize := Create (Ctx);
@@ -551,6 +566,7 @@ package body Z3.Tests is  --  GCOV_EXCL_LINE
       Assert (Sort (Optimize.Lower (Bv ("A"))) = Sort_Int,
               "Invalid sort " & Sort (Optimize.Lower (Bv ("A")))'Img);
       Assert (Int (Optimize.Lower (Bv ("A"))) = Int (LLU'(10), Ctx), "Invalid lower");
+      Assert_Exception (Uninitialized_Optimize'Access, "No exception on uninitialized optimize");
    end Test_Optimize;
 
    ---------------------------------------------------------------------------
