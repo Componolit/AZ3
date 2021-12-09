@@ -1,7 +1,10 @@
 project libz3 is
 
+   type Build_Type is ("production", "development");
+   Build : Build_Type := external ("AZ3_BUILD", "development");
+
    for Externally_Built use "True";
-   for Library_Dir use "z3/build";
+   for Library_Dir use "z3/" & Build;
    for Library_Name use "z3";
    for Source_Dirs use ();
    for Library_Kind use "dynamic";

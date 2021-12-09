@@ -28,8 +28,8 @@ jobs:
       uses: actions/cache@v2
       with:
           path: |
-              z3/z3/build/libz3.so
-              z3/z3/build/Makefile
+              z3/z3/development/libz3.so
+              z3/z3/development/Makefile
           key: ${{ hashFiles('z3/z3/CMakeLists.txt', 'Makefile') }}
     - name: Test
       run: |
