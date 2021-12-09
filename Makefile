@@ -12,13 +12,16 @@ test: build obj/tests/tests
 	@ASAN_OPTIONS=detect_leak=1 LSAN_OPTIONS=suppressions=tests/asan_suppression.txt obj/tests/tests
 	@gcovr . $(GCOVR_OPTS)
 
-z3/z3/build/Makefile:
-	CFLAGS="$(Z3_TEST_OPTS)" CXXFLAGS="$(Z3_TEST_OPTS)" cmake -S z3/z3 -B z3/z3/build
+z3/z3/development/Makefile:
+	CFLAGS="$(Z3_TEST_OPTS)" CXXFLAGS="$(Z3_TEST_OPTS)" cmake -S z3/z3 -B z3/z3/development
 
-z3/z3/build/libz3.so: z3/z3/build/Makefile
-	make -C z3/z3/build -j$(shell nproc)
+z3/z3/production/Makefile:
+	cmake -S z3/z3 -B z3/z3/production
 
-build: z3/z3/build/libz3.so
+z3/z3/%/libz3.so: z3/z3/%/Makefile
+	make -C $(dir $^) -j$(shell nproc)
+
+build: z3/z3/development/libz3.so
 	@gprbuild $(GPRBUILD_OPTS) -P tests/tests
 
 clean:

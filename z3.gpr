@@ -3,15 +3,12 @@ with "z3/libz3";
 
 project Z3 is
 
-   type Build_Type is ("production", "development");
-   Build : Build_Type := external ("AZ3_BUILD", "development");
-
    for Create_Missing_Dirs use "True";
    for Source_Dirs use (".");
    for Object_Dir use "obj";
 
    package Compiler is
-      case Build is
+      case Libz3.Build is
          when "development" =>
             for Default_Switches ("Ada") use Z3_Switches.Compiler_Switches & ("-g", "-O0", "--coverage");
          when others =>
