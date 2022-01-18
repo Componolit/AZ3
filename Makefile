@@ -30,4 +30,5 @@ clean:
 	rm -rf obj
 
 clean_z3:
-	rm -rf z3/z3/build
+	rm -rf z3/z3/production
+	rm -rf z3/z3/development
